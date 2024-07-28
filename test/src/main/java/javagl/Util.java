@@ -14,4 +14,14 @@ public class Util {
         }
         return str;
     }
+
+    public static String resourceString(String path) {
+//        return new String(Util.class.getClassLoader().getResource(path).getPath());
+        try {
+            return new String(new Util().getClass().getClassLoader().getResourceAsStream(path).readAllBytes());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+//                .getClass().getClassLoader().getResourceAsStream("shaders/shader.vert").readAllBytes()
+    }
 }

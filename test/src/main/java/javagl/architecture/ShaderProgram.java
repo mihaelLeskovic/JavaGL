@@ -17,7 +17,7 @@ public class ShaderProgram {
         if(shaderID==0) throw new RuntimeException("Could not create shader.");
         List<Integer> shaderModules = new ArrayList<>();
         shaderModuleDataList.forEach(
-                s -> shaderModules.add(createShader(Util.readFile(s.shaderFile), s.shaderType))
+                s -> shaderModules.add(createShader(s.shaderFile, s.shaderType))
         );
 
         link(shaderModules);
@@ -39,8 +39,10 @@ public class ShaderProgram {
         glShaderSource(id, shaderCode);
         glCompileShader(id);
 
-        if(glGetShaderi(id, GL_COMPILE_STATUS) ==0)
-            throw new RuntimeException("Error compiling shader coe: " + glGetShaderInfoLog(id, 1024));
+        if(glGetShaderi(id, GL_COMPILE_STATUS) ==0) {
+            System.err.println("Shader code: \n" + shaderCode);
+            throw new RuntimeException("Error compiling shader code: " + glGetShaderInfoLog(id, 1024));
+        }
 
         glAttachShader(shaderID, id);
 

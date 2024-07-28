@@ -57,6 +57,8 @@ public class TriangleMesh extends Renderable{
     public void draw() {
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, indices.length, GL_UNSIGNED_INT, 0);
+//        glDrawArrays(GL_TRIANGLES, 0, vertices.length); // Adjust the count according to your model
+
         glBindVertexArray(0);
     }
 
@@ -87,7 +89,7 @@ public class TriangleMesh extends Renderable{
 
     void bufferDataEBO(){
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            IntBuffer indicesBuffer = BufferUtils.createIntBuffer(indices.length);
+            IntBuffer indicesBuffer = stack.mallocInt(indices.length);
             indicesBuffer.put(indices).flip();
 
             glBindVertexArray(VAO);
@@ -105,7 +107,7 @@ public class TriangleMesh extends Renderable{
         try (MemoryStack stack = MemoryStack.stackPush()){
             int size = index != 2 ? 3 : 2;      //uvCoords are 2 floats, others are 3
             float[][] arrayReferences = getArrayReferences();
-            FloatBuffer buffer = BufferUtils.createFloatBuffer(arrayReferences[index].length);
+            FloatBuffer buffer = stack.mallocFloat(arrayReferences[index].length);
             buffer.put(arrayReferences[index]);
 
             glBindVertexArray(VAO);

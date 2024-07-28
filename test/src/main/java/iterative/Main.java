@@ -1,8 +1,5 @@
-package javagl;
+package iterative;
 
-import javagl.architecture.*;
-import javagl.architecture.transforms.Camera;
-import javagl.architecture.transforms.Light;
 import org.joml.Vector3f;
 import org.lwjgl.*;
 import org.lwjgl.glfw.*;
@@ -122,51 +119,15 @@ public class Main {
         // Set the clear color
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-        ShaderModuleData vertexShader = new ShaderModuleData(
-                Util.resourceString("shaders/shader.vert"),
-                GL_VERTEX_SHADER);
-        ShaderModuleData geometryShader = new ShaderModuleData(
-                Util.resourceString("shaders/shader.geom"),
-                GL_GEOMETRY_SHADER);
-        ShaderModuleData fragmentShader = new ShaderModuleData(
-                Util.resourceString("shaders/shader.frag"),
-                GL_FRAGMENT_SHADER);
-
-        ShaderProgram shaderProgram = new ShaderProgram(Arrays.asList(new ShaderModuleData[]{
-                vertexShader, geometryShader, fragmentShader
-        }));
-        shaderProgram.bind();
-
-        Renderer renderer = new Renderer(
-                new Camera(),
-                new Light(),
-                new ResourceManager("C:\\Users\\dews\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\models")
-        );
-
-        renderer.camera.position.set(3, 4, 1);
-        renderer.camera.setLookDirection(new Vector3f(0,0,0), new Vector3f(0,1,0));
-
-        renderer.light.position.set(-3, 4, -1);
-        renderer.light.intensity.set(1, 1, 1);
-        renderer.light.ambientIntensity = 0.1f;
-
-        String objPath = "C:\\Users\\mih\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\models\\glava\\glava.obj";
-        String obj2Path = "C:\\Users\\mih\\Documents\\GitHub\\javaGL\\test\\src\\main\\resources\\models\\kocka.obj";
-
-        renderer.addObject(obj2Path, shaderProgram.shaderID);
-//        renderer.camera->setPosition(glm::vec4(3.0f, 4.0f, 1.0f, 1.0f));
-//        renderer.camera->setLookDirection(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        renderer.camera.position.set(3, 4, 1);
-        renderer.camera.setLookDirection(new Vector3f(0,0,0), new Vector3f(0,1,0));
-
-        InputManager inputManager = new InputManager(renderer, renderer.camera, 500, 500);
 
         // Run the rendering loop until the user has attempted to close
         // the window or has pressed the ESCAPE key.
         while (!glfwWindowShouldClose(window)) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
 
-            renderer.render();
+
+
+
 
             glfwSwapBuffers(window); // swap the color buffers
 
@@ -177,7 +138,7 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        new Main().run();
+        new javagl.Main().run();
     }
 
 }

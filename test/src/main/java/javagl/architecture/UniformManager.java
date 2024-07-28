@@ -36,28 +36,31 @@ public class UniformManager {
     public static void setUniform(String name, int shaderID, Matrix4f val) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             int uniformLocation = getUniformLocation(name, shaderID);
-            glUniformMatrix4fv(uniformLocation, false, val.get(BufferUtils.createFloatBuffer(16)));
+            FloatBuffer buffer = stack.mallocFloat(16);
+            glUniformMatrix4fv(uniformLocation, false, val.get(buffer));
         }
     }
 
     public static void setUniform(String name, int shaderID, Vector3f val) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             int uniformLocation = getUniformLocation(name, shaderID);
-            glUniform3fv(uniformLocation, val.get(BufferUtils.createFloatBuffer(3)));
+            FloatBuffer buffer = stack.mallocFloat(3);
+            glUniform3fv(uniformLocation, val.get(buffer));
         }
     }
 
     public static void setUniform(String name, int shaderID, Vector4f val) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             int uniformLocation = getUniformLocation(name, shaderID);
-            glUniform4fv(uniformLocation, val.get(BufferUtils.createFloatBuffer(4)));
+            FloatBuffer buffer = stack.mallocFloat(4);
+            glUniform4fv(uniformLocation, val.get(buffer));
         }
     }
 
     public static void setUniform(String name, int shaderID, float val) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             int uniformLocation = getUniformLocation(name, shaderID);
-            FloatBuffer buffer = BufferUtils.createFloatBuffer(1);
+            FloatBuffer buffer = stack.mallocFloat(1);
             buffer.put(val).flip();
             glUniform1fv(uniformLocation, buffer);
         }
