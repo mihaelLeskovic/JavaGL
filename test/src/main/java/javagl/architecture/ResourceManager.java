@@ -5,7 +5,6 @@ import javagl.architecture.renderables.TriangleMesh;
 import javagl.architecture.transforms.ObjectInstance;
 import org.lwjgl.assimp.AIScene;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,13 +22,13 @@ public class ResourceManager {
         this.resourcePath = resourcePath;
     }
 
-//    public static Object loadModel(String modelPath) {
+//    public static ObjectInstance loadModel(String modelPath) {
 //        return loadModel(modelPath, aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices |
 //                aiProcess_Triangulate | aiProcess_FixInfacingNormals | aiProcess_CalcTangentSpace | aiProcess_LimitBoneWeights |
 //                aiProcess_PreTransformVertices);
 //    }
 //
-//    public static Object loadModel(String modelPath, int flags) {
+//    public static ObjectInstance loadModel(String modelPath, int flags) {
 //        File file = new File(modelPath);
 //        if(!file.exists()) throw new RuntimeException("Model path: \"" + modelPath + "\" does not exist.");
 //

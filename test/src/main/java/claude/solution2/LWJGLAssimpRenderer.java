@@ -9,6 +9,8 @@ import org.lwjgl.opengl.*;
 import org.lwjgl.system.*;
 
 import java.nio.*;
+import java.time.Duration;
+import java.time.Instant;
 
 import static org.lwjgl.assimp.Assimp.*;
 import static org.lwjgl.glfw.Callbacks.*;
@@ -34,6 +36,7 @@ public class LWJGLAssimpRenderer {
     private Matrix4f model;
     private Matrix4f view;
     private Matrix4f projection;
+    Instant lastTime;
 
     public void run() {
         System.out.println("LWJGL " + Version.getVersion());
@@ -91,14 +94,15 @@ public class LWJGLAssimpRenderer {
         glfwShowWindow(window);
 
         GL.createCapabilities();
+
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
 
-
         loadModel("src\\main\\resources\\models\\glava\\glava.obj");
         createShaders();
         setupMatrices();
+        lastTime = null;
     }
 
     private void loadModel(String filePath) {
@@ -212,12 +216,17 @@ public class LWJGLAssimpRenderer {
         FloatBuffer viewBuffer = BufferUtils.createFloatBuffer(16);
         FloatBuffer projectionBuffer = BufferUtils.createFloatBuffer(16);
 
+        lastTime = Instant.now();
+
         while (!glfwWindowShouldClose(window)) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             glUseProgram(shaderProgram);
 
-            model.rotate((float) glfwGetTime() * 0.00005f, 0.0f, 1f, 0.0f);
+            float deltaT = Duration.between(lastTime, Instant.now()).toMillis() * 0.001f;
+            lastTime = Instant.now();
+
+            model.rotate((float) 0.5f * deltaT, 0.0f, 1f, 0.0f);
             model.get(modelBuffer);
             view.get(viewBuffer);
             projection.get(projectionBuffer);
