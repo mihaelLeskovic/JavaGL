@@ -7,13 +7,17 @@ import static org.lwjgl.opengl.GL15C.glDeleteBuffers;
 import static org.lwjgl.opengl.GL30C.glBindVertexArray;
 
 public class SimpleTriangleMesh extends Renderable implements Cleanable {
-    int VBO;
+    int[] VBO;
     int EBO;
     int numVertices;
     int numFaces;
 
-    public int getVBO() {
+    public int[] getVBO() {
         return VBO;
+    }
+
+    public int getVBOindexed(int index) {
+        return VBO[index];
     }
 
     public int getEBO() {

@@ -39,7 +39,7 @@ public class ShaderFactory {
         int shader = glCreateProgram();
         int[] partShaders = new int[modules.length];
         for(int i=0; i<modules.length; i++) {
-            partShaders[i] = compilePartShader(modules[i].getType(), modules[i].getCode());
+            partShaders[i] = compilePartShader(modules[i]);
             glAttachShader(shader, partShaders[i]);
         }
 

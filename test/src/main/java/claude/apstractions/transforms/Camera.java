@@ -12,6 +12,7 @@ public class Camera extends Transform {
     private Matrix4f projectionMatrix;
 
     public Camera() {
+        super();
         this.l = -0.5f;
         this.r = 0.5f;
         this.b = -0.5f;

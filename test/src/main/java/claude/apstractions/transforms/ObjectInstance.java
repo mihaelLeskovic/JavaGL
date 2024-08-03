@@ -1,10 +1,11 @@
 package claude.apstractions.transforms;
 
-import claude.apstractions.Main;
 import claude.apstractions.UniformManager;
 import claude.apstractions.renderables.Renderable;
 import claude.apstractions.shaders.Shader;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 public class ObjectInstance extends Transform{
     Renderable renderable;
@@ -18,10 +19,15 @@ public class ObjectInstance extends Transform{
         this.uniformManager = uniformManager;
     }
 
-    public void render(Matrix4f projectionMatrix, Matrix4f viewMatrix) {
-        uniformManager.setUniformMatrix4fv(shader.getShader(), "projection", projectionMatrix);
-        uniformManager.setUniformMatrix4fv(shader.getShader(), "model", this.getModelMatrix());
-        uniformManager.setUniformMatrix4fv(shader.getShader(), "view", viewMatrix);
+    public void render(Camera camera, Light light) {
+        uniformManager.setUniformMatrix4f(shader.getShader(), "projection", camera.getProjectionMatrix());
+        uniformManager.setUniformMatrix4f(shader.getShader(), "model", this.getModelMatrix());
+        uniformManager.setUniformMatrix4f(shader.getShader(), "view", camera.getViewMatrix());
+        uniformManager.setUniformVector3f(shader.getShader(), "viewPos", camera.getPosition());
+        uniformManager.setUniformVector3f(shader.getShader(), "lightColor", light.getIntensity());
+        uniformManager.setUniformVector3f(shader.getShader(), "lightPos", light.getPosition());
+//        uniformManager.setUniformFloat(shader.getShader(), "ambientIntensity", light.getAmbientIntensity());
+        uniformManager.setUniformVector3f(shader.getShader(), "objectColor", new Vector3f(1, 0, 1));
 
         renderable.draw();
     }

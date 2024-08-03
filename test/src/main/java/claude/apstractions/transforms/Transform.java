@@ -32,8 +32,9 @@ public class Transform {
         updateMatrices();
     }
 
-    public void setAdjustmentMatrix(Matrix4f adjustmentMatrix) {
+    public Transform setAdjustmentMatrix(Matrix4f adjustmentMatrix) {
         this.adjustmentMatrix = adjustmentMatrix;
+        return this;
     }
 
     private Vector3f applyAdjustment(Vector3f vec) {
@@ -70,6 +71,10 @@ public class Transform {
                 .scale(1/scale.x, 1/scale.y, 1/scale.z);
     }
 
+    public Vector3f getPosition() {
+        return position;
+    }
+
     public Matrix4f getModelMatrix() {
         return applyAdjustment(modelMatrix);
     }
@@ -79,7 +84,7 @@ public class Transform {
     }
 
     public Matrix4f getNormalMatrix(){
-        return getModelMatrix().invert(new Matrix4f()).transpose();
+        return new Matrix4f(getModelMatrix()).invert(new Matrix4f()).transpose();
     }
 
     public Transform setPosition(Vector3f newPos) {
@@ -106,6 +111,7 @@ public class Transform {
         right.rotateAxis(angle, axis.x, axis.y, axis.z);
         front.rotateAxis(angle, axis.x, axis.y, axis.z);
         updateMatrices();
+        normalizeVectors();
         return this;
     }
 
@@ -113,8 +119,15 @@ public class Transform {
         front = lookAt;
         right = front.cross(upVector, new Vector3f());
         up = right.cross(front, new Vector3f());
+        normalizeVectors();
         updateMatrices();
         return this;
+    }
+
+    private void normalizeVectors() {
+        this.up.normalize();
+        this.front.normalize();
+        this.right.normalize();
     }
 
     //TODO bilo bi zgodno imati ove funkcije
@@ -140,5 +153,10 @@ public class Transform {
         position.add(translation);
         updateMatrices();
         return this;
+    }
+
+    public void setScale(float x, float y, float z) {
+        scale.set(x, y, z);
+        updateMatrices();
     }
 }

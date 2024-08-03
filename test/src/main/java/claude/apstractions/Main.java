@@ -5,6 +5,7 @@ import claude.apstractions.shaders.Shader;
 import claude.apstractions.shaders.ShaderFactory;
 import claude.apstractions.shaders.ShaderModule;
 import claude.apstractions.transforms.Camera;
+import claude.apstractions.transforms.Light;
 import claude.apstractions.transforms.ObjectInstance;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -16,11 +17,16 @@ import org.lwjgl.system.*;
 import java.nio.*;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.function.Consumer;
 
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER;
 import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
@@ -28,9 +34,22 @@ public class Main {
     private long window;
     Instant lastTime;
     Shader shader;
-    ObjectInstance objectInstance;
+    List<ObjectInstance> objectInstances;
     Camera camera;
     UniformManager uniformManager;
+    Light light;
+    boolean renderDocDebugTime = false;
+    String[] args;
+    HashMap<String, Consumer<Main>> argParserMap;
+
+
+    public Main(String[] args) {
+        this.args = args;
+    }
+
+    public static void main(String[] args) {
+        new Main(args).run();
+    }
 
     public void run() {
         System.out.println("LWJGL " + Version.getVersion());
@@ -44,7 +63,21 @@ public class Main {
         glfwSetErrorCallback(null).free();
     }
 
+    private void parseArguments() {
+        for(String arg : args) {
+            Consumer<Main> func = argParserMap.get(arg);
+            if(func == null) throw new IllegalArgumentException("Cannot parse argument: ´" + args + "´");
+            func.accept(this);
+        }
+
+        if(renderDocDebugTime) System.out.println("Using renderDoc settings.");
+    }
+
     private void init() {
+        argParserMap = new HashMap<>();
+        argParserMap.put("-renderDoc", m -> m.renderDocDebugTime=true);
+        parseArguments();
+
         GLFWErrorCallback.createPrint(System.err).set();
 
         if (!glfwInit())
@@ -89,35 +122,64 @@ public class Main {
 
         GL.createCapabilities();
 
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+//        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
+        glFrontFace(GL_CCW);
+
+        objectInstances = new ArrayList<>();
 
         uniformManager = new UniformManager();
 
         ShaderModule vertexModule = ShaderFactory.makeShaderModule(
                 GL_VERTEX_SHADER,
-                "src/main/resources/shaders/gptExample/vertex.glsl"
+                renderDocDebugTime ?
+                        "C:\\Users\\dews\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\shaders\\shader.vert"
+                        : "src/main/resources/shaders/shader.vert"
         );
         ShaderModule fragmentModule = ShaderFactory.makeShaderModule(
                 GL_FRAGMENT_SHADER,
-                "src/main/resources/iterative/shaders/shader.frag"
+                renderDocDebugTime ?
+                        "C:\\Users\\dews\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\shaders\\shader.frag"
+                        : "src/main/resources/shaders/shader.frag"
+        );
+        ShaderModule geometryModule = ShaderFactory.makeShaderModule(
+                GL_GEOMETRY_SHADER,
+                renderDocDebugTime ?
+                        "C:\\Users\\dews\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\shaders\\shader.geom"
+                        : "src/main/resources/shaders/shader.geom"
         );
 
-        shader = ShaderFactory.makeWholeShader(vertexModule, fragmentModule);
+        shader = ShaderFactory.makeWholeShader(vertexModule, geometryModule, fragmentModule);
 
-        objectInstance = new ObjectInstance(
+        ObjectInstance planeInstance = new ObjectInstance(
                 RenderableFactory
-                        .makeSimpleTriangleMesh("src\\main\\resources\\models\\jet.obj"),
+                        .makeSimpleTriangleMesh(renderDocDebugTime ?
+                                "C:\\Users\\dews\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\models\\jet.obj"
+                                : "src\\main\\resources\\models\\jet.obj"
+                        ),
                 shader,
                 uniformManager
         );
+        planeInstance.setAdjustmentMatrix(new Matrix4f(
+                0, 0, -1, 0,
+                0, 1, 0, 0,
+                1, 0, 0, 0,
+                0, 0, 0, 1
+        ));
+        objectInstances.add(planeInstance);
+//        planeInstance.setScale(0.05f, 0.05f, 0.05f);
 
         lastTime = null;
 
         camera = new Camera();
         camera.setPosition(1.0f, 1.5f, 3.0f)
                 .rotate(new Vector3f(-1, 0, 0), 0.4f);
+//                .setScale(0.5f, 0.5f, 0.5f);
+
+        light = new Light();
+        light.setPosition(new Vector3f(300, 50f, -1.5f));
+        light.setLookDirection(new Vector3f(0, 2, -1), new Vector3f(0, 1, 0));
     }
 
     private void loop() {
@@ -125,12 +187,6 @@ public class Main {
         glEnable(GL_DEPTH_TEST);
 
         lastTime = Instant.now();
-        objectInstance.setAdjustmentMatrix(new Matrix4f(
-                0, 0, -1, 0,
-                0, 1, 0, 0,
-                1, 0, 0, 0,
-                0, 0, 0, 1
-        ));
 
         while (!glfwWindowShouldClose(window)) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -142,17 +198,15 @@ public class Main {
 
 //            model.rotate((float) 0.5f * deltaT, 0.0f, 1f, 0.0f);
 //            model.get(modelBuffer);
-            objectInstance.rotate(new Vector3f(0, 1, 0), 0.5f * deltaT);
-            objectInstance.translateLocal(new Vector3f(0, 0, 1).mul(0.5f*deltaT));
+            objectInstances.get(0).rotate(new Vector3f(0, 1, 0), 0.5f * deltaT);
+            objectInstances.get(0).translateLocal(new Vector3f(0, 0, 1).mul(0.5f*deltaT));
 
-            objectInstance.render(camera.getProjectionMatrix(), camera.getViewMatrix());
+            for(ObjectInstance objectInstance : objectInstances) {
+                objectInstance.render(camera, light);
+            }
 
             glfwSwapBuffers(window);
             glfwPollEvents();
         }
-    }
-
-    public static void main(String[] args) {
-        new Main().run();
     }
 }
