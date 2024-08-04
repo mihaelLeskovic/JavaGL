@@ -102,6 +102,25 @@ public class Main {
                     glEnable(GL_CULL_FACE);
                 }
             }
+
+            if (key == GLFW_KEY_W && action == GLFW_PRESS) {
+                camera.translateLocal(new Vector3f(0, 0, -1));
+            }
+            if (key == GLFW_KEY_S && action == GLFW_PRESS) {
+                camera.translateLocal(new Vector3f(0, 0, 1));
+            }
+            if (key == GLFW_KEY_A && action == GLFW_PRESS) {
+                camera.translateLocal(new Vector3f(-1, 0, 0));
+            }
+            if (key == GLFW_KEY_D && action == GLFW_PRESS) {
+                camera.translateLocal(new Vector3f(1, 0, 0));
+            }
+            if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
+                camera.translateLocal(new Vector3f(0, -1, 0));
+            }
+            if (key == GLFW_KEY_E && action == GLFW_PRESS) {
+                camera.translateLocal(new Vector3f(0, 1, 0));
+            }
         });
 
         try (MemoryStack stack = stackPush()) {
@@ -153,11 +172,10 @@ public class Main {
         shader = ShaderFactory.makeWholeShader(vertexModule, geometryModule, fragmentModule);
 
         ObjectInstance planeInstance = new ObjectInstance(
-                RenderableFactory
-                        .makeSimpleTriangleMesh(renderDocDebugTime ?
+                RenderableFactory.makeSimpleTriangleMesh(renderDocDebugTime ?
                                 "C:\\Users\\dews\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\models\\jet.obj"
                                 : "src\\main\\resources\\models\\jet.obj"
-                        ),
+                ),
                 shader,
                 uniformManager
         );
@@ -169,6 +187,27 @@ public class Main {
         ));
         objectInstances.add(planeInstance);
 //        planeInstance.setScale(0.05f, 0.05f, 0.05f);
+
+        ObjectInstance centerCube = new ObjectInstance(
+                RenderableFactory.makeSimpleTriangleMesh(renderDocDebugTime ?
+                        "C:\\Users\\dews\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\models\\kocka.obj"
+                        : "src\\main\\resources\\models\\kocka.obj"
+                ),
+                shader,
+                uniformManager
+        );
+        centerCube.setScale(0.01f, 0.01f, 0.01f);
+
+        ObjectInstance centerCube2 = new ObjectInstance(
+                RenderableFactory.makeSimpleTriangleMesh(renderDocDebugTime ?
+                        "C:\\Users\\dews\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\models\\kocka.obj"
+                        : "src\\main\\resources\\models\\kocka.obj"
+                ),
+                shader,
+                uniformManager
+        );
+//        objectInstances.add(centerCube);
+//        objectInstances.add(centerCube2);
 
         lastTime = null;
 
@@ -198,6 +237,7 @@ public class Main {
 
 //            model.rotate((float) 0.5f * deltaT, 0.0f, 1f, 0.0f);
 //            model.get(modelBuffer);
+
             objectInstances.get(0).rotate(new Vector3f(0, 1, 0), 0.5f * deltaT);
             objectInstances.get(0).translateLocal(new Vector3f(0, 0, 1).mul(0.5f*deltaT));
 
