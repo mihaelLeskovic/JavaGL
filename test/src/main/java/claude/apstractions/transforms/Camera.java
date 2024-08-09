@@ -17,8 +17,27 @@ public class Camera extends Transform {
         this.r = 0.5f;
         this.b = -0.5f;
         this.t = 0.5f;
-        this.n = 1.0f;
+        this.n = 1f;
         this.f = 100f;
+        projectionMatrix = new Matrix4f().frustum(l, r, b, t, n, f);
+    }
+
+    public void setN(float n) {
+        this.n = n;
+        updateProjectionMatrix();
+    }
+
+    public void setNstaySame(float n) {
+        float ratio = n / this.n;
+        this.n = n;
+        this.l *= ratio;
+        this.r *= ratio;
+        this.b *= ratio;
+        this.t *= ratio;
+        updateProjectionMatrix();
+    }
+
+    private void updateProjectionMatrix() {
         projectionMatrix = new Matrix4f().frustum(l, r, b, t, n, f);
     }
 

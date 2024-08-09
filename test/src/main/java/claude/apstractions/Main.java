@@ -1,5 +1,7 @@
 package claude.apstractions;
 
+import claude.apstractions.input.InputManager;
+import claude.apstractions.input.TestCameraInputManager;
 import claude.apstractions.renderables.RenderableFactory;
 import claude.apstractions.shaders.Shader;
 import claude.apstractions.shaders.ShaderFactory;
@@ -41,6 +43,7 @@ public class Main {
     boolean renderDocDebugTime = false;
     String[] args;
     HashMap<String, Consumer<Main>> argParserMap;
+    List<InputManager> inputManagers;
 
 
     public Main(String[] args) {
@@ -78,6 +81,13 @@ public class Main {
         argParserMap.put("-renderDoc", m -> m.renderDocDebugTime=true);
         parseArguments();
 
+        objectInstances = new ArrayList<>();
+        uniformManager = new UniformManager();
+
+        camera = new Camera();
+        inputManagers = new ArrayList<>();
+        inputManagers.add(new TestCameraInputManager(camera));
+
         GLFWErrorCallback.createPrint(System.err).set();
 
         if (!glfwInit())
@@ -90,38 +100,6 @@ public class Main {
         window = glfwCreateWindow(800, 600, "My main", NULL, NULL);
         if (window == NULL)
             throw new RuntimeException("Failed to create the GLFW window");
-
-        glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
-            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
-                glfwSetWindowShouldClose(window, true);
-
-            if (key == GLFW_KEY_C && action == GLFW_PRESS) {
-                if (glIsEnabled(GL_CULL_FACE)) {
-                    glDisable(GL_CULL_FACE);
-                } else {
-                    glEnable(GL_CULL_FACE);
-                }
-            }
-
-            if (key == GLFW_KEY_W && action == GLFW_PRESS) {
-                camera.translateLocal(new Vector3f(0, 0, -1));
-            }
-            if (key == GLFW_KEY_S && action == GLFW_PRESS) {
-                camera.translateLocal(new Vector3f(0, 0, 1));
-            }
-            if (key == GLFW_KEY_A && action == GLFW_PRESS) {
-                camera.translateLocal(new Vector3f(-1, 0, 0));
-            }
-            if (key == GLFW_KEY_D && action == GLFW_PRESS) {
-                camera.translateLocal(new Vector3f(1, 0, 0));
-            }
-            if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
-                camera.translateLocal(new Vector3f(0, -1, 0));
-            }
-            if (key == GLFW_KEY_E && action == GLFW_PRESS) {
-                camera.translateLocal(new Vector3f(0, 1, 0));
-            }
-        });
 
         try (MemoryStack stack = stackPush()) {
             IntBuffer pWidth = stack.mallocInt(1);
@@ -141,14 +119,11 @@ public class Main {
 
         GL.createCapabilities();
 
-//        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
         glFrontFace(GL_CCW);
-
-        objectInstances = new ArrayList<>();
-
-        uniformManager = new UniformManager();
 
         ShaderModule vertexModule = ShaderFactory.makeShaderModule(
                 GL_VERTEX_SHADER,
@@ -211,7 +186,7 @@ public class Main {
 
         lastTime = null;
 
-        camera = new Camera();
+        camera.setNstaySame(0.01f);
         camera.setPosition(1.0f, 1.5f, 3.0f)
                 .rotate(new Vector3f(-1, 0, 0), 0.4f);
 //                .setScale(0.5f, 0.5f, 0.5f);
@@ -241,12 +216,17 @@ public class Main {
             objectInstances.get(0).rotate(new Vector3f(0, 1, 0), 0.5f * deltaT);
             objectInstances.get(0).translateLocal(new Vector3f(0, 0, 1).mul(0.5f*deltaT));
 
+            glfwPollEvents();
+            for(InputManager inputManager : inputManagers) {
+                inputManager.processInput(window);
+                inputManager.procesInputDeltaT(window, deltaT);
+            }
+
             for(ObjectInstance objectInstance : objectInstances) {
                 objectInstance.render(camera, light);
             }
 
             glfwSwapBuffers(window);
-            glfwPollEvents();
         }
     }
 }
