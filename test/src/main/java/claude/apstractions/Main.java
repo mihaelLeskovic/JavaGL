@@ -161,11 +161,11 @@ public class Main {
 
         ShaderModule seaVertexModule = ShaderFactory.makeShaderModule(
                 GL_VERTEX_SHADER,
-                "C:\\Users\\dews\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\shaders\\sea_shaders\\sea.vert"
+                "src/main/resources/shaders/sea_shaders/sea.vert"
         );
         ShaderModule seaFragmentModule = ShaderFactory.makeShaderModule(
                 GL_FRAGMENT_SHADER,
-                "C:\\Users\\dews\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\shaders\\sea_shaders\\sea.frag"
+                "src/main/resources/shaders/sea_shaders/sea.frag"
         );
 
         Shader seaShader = ShaderFactory.makeWholeShader(seaVertexModule, seaFragmentModule);
