@@ -1,5 +1,6 @@
 package claude.apstractions.renderables;
 
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.lwjgl.assimp.*;
 import org.lwjgl.system.MemoryUtil;
@@ -16,6 +17,58 @@ import static org.lwjgl.opengl.GL30.glBindVertexArray;
 import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 public class RenderableFactory {
+
+    public static SeaMesh makeSeaMesh(float span, float divisionSpan) {
+        float offset = span/2;
+        int n = (int) (span / divisionSpan);
+        float xPos = -offset;
+        float yPos = -offset;
+
+        // Create a 2D array to store time offsets for all vertices
+        float[][] timeOffsets = new float[n+1][n+1];
+        for(int i = 0; i <= n; i++) {
+            for(int j = 0; j <= n; j++) {
+                timeOffsets[i][j] = (float) (Math.random() * Math.PI * 2);
+            }
+        }
+
+        SeaMesh seaMesh = new SeaMesh();
+        seaMesh.VAOs = new int[n];
+        seaMesh.VBOs = new int[n];
+
+        glGenVertexArrays(seaMesh.VAOs);
+        glGenBuffers(seaMesh.VBOs);
+
+        for(int i = 0; i < n; i++) {
+            FloatBuffer vertices = MemoryUtil.memAllocFloat(n * 6);
+
+            for(int j = 0; j < n; j++) {
+                vertices.put(xPos)
+                        .put(timeOffsets[i][j])
+                        .put(yPos);
+
+                vertices.put(xPos + divisionSpan)
+                        .put(timeOffsets[i+1][j])
+                        .put(yPos);
+
+                yPos += divisionSpan;
+            }
+            yPos = -offset;
+            xPos += divisionSpan;
+
+            vertices.flip();
+
+            glBindVertexArray(seaMesh.VAOs[i]);
+            glBindBuffer(GL_ARRAY_BUFFER, seaMesh.VBOs[i]);
+            glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
+            glVertexAttribPointer(0, 3, GL_FLOAT, false, 3*Float.BYTES, 0);
+            glEnableVertexAttribArray(0);
+
+            MemoryUtil.memFree(vertices);
+        }
+
+        return seaMesh;
+    }
     public static SimpleTriangleMesh makeSimpleTriangleMesh(String filePath) {
         return makeSimpleTriangleMesh(
                 filePath,
@@ -146,7 +199,8 @@ public class RenderableFactory {
 
         triMesh.numFaces = nFaces;
         triMesh.numVertices = nVertices;
-        triMesh.VAO = vao;
+        triMesh.VAOs = new int[1];
+        triMesh.VAOs[0] = vao;
         triMesh.VBO = vbo;
         triMesh.EBO = ebo;
 

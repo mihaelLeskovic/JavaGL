@@ -9,6 +9,7 @@ import claude.apstractions.shaders.ShaderModule;
 import claude.apstractions.transforms.Camera;
 import claude.apstractions.transforms.Light;
 import claude.apstractions.transforms.ObjectInstance;
+import claude.apstractions.transforms.SeaObject;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.Version;
@@ -33,6 +34,11 @@ import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
 
 public class Main {
+    int width = 800;
+    int height = 600;
+    final double xSens = 0.1;
+    final double ySens = 0.1;
+
     private long window;
     Instant lastTime;
     Shader shader;
@@ -44,7 +50,8 @@ public class Main {
     String[] args;
     HashMap<String, Consumer<Main>> argParserMap;
     List<InputManager> inputManagers;
-
+    boolean lockMouse = true;
+    SeaObject seaObject;
 
     public Main(String[] args) {
         this.args = args;
@@ -84,10 +91,6 @@ public class Main {
         objectInstances = new ArrayList<>();
         uniformManager = new UniformManager();
 
-        camera = new Camera();
-        inputManagers = new ArrayList<>();
-        inputManagers.add(new TestCameraInputManager(camera));
-
         GLFWErrorCallback.createPrint(System.err).set();
 
         if (!glfwInit())
@@ -97,7 +100,7 @@ public class Main {
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-        window = glfwCreateWindow(800, 600, "My main", NULL, NULL);
+        window = glfwCreateWindow(width, height, "My main", NULL, NULL);
         if (window == NULL)
             throw new RuntimeException("Failed to create the GLFW window");
 
@@ -119,11 +122,21 @@ public class Main {
 
         GL.createCapabilities();
 
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+//        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
         glFrontFace(GL_CCW);
+
+        camera = new Camera();
+        inputManagers = new ArrayList<>();
+        inputManagers.add(
+                new TestCameraInputManager(window, width, height, camera, lockMouse)
+                        .setySens(ySens)
+                        .setxSens(xSens)
+                        .setMoveSpeed(4f)
+        );
+
 
         ShaderModule vertexModule = ShaderFactory.makeShaderModule(
                 GL_VERTEX_SHADER,
@@ -146,6 +159,22 @@ public class Main {
 
         shader = ShaderFactory.makeWholeShader(vertexModule, geometryModule, fragmentModule);
 
+        ShaderModule seaVertexModule = ShaderFactory.makeShaderModule(
+                GL_VERTEX_SHADER,
+                "C:\\Users\\dews\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\shaders\\sea_shaders\\sea.vert"
+        );
+        ShaderModule seaFragmentModule = ShaderFactory.makeShaderModule(
+                GL_FRAGMENT_SHADER,
+                "C:\\Users\\dews\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\shaders\\sea_shaders\\sea.frag"
+        );
+
+        Shader seaShader = ShaderFactory.makeWholeShader(seaVertexModule, seaFragmentModule);
+        seaObject = new SeaObject(
+                RenderableFactory.makeSeaMesh(1000, 1),
+                seaShader,
+                uniformManager
+        );
+
         ObjectInstance planeInstance = new ObjectInstance(
                 RenderableFactory.makeSimpleTriangleMesh(renderDocDebugTime ?
                                 "C:\\Users\\dews\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\models\\jet.obj"
@@ -160,6 +189,8 @@ public class Main {
                 1, 0, 0, 0,
                 0, 0, 0, 1
         ));
+        planeInstance.translateGlobal(new Vector3f(0, 1, 0));
+
         objectInstances.add(planeInstance);
 //        planeInstance.setScale(0.05f, 0.05f, 0.05f);
 
@@ -215,6 +246,7 @@ public class Main {
 
             objectInstances.get(0).rotate(new Vector3f(0, 1, 0), 0.5f * deltaT);
             objectInstances.get(0).translateLocal(new Vector3f(0, 0, 1).mul(0.5f*deltaT));
+//            objectInstances.get(0).translateGlobal(new Vector3f(0, 3, 0));
 
             glfwPollEvents();
             for(InputManager inputManager : inputManagers) {
@@ -225,6 +257,9 @@ public class Main {
             for(ObjectInstance objectInstance : objectInstances) {
                 objectInstance.render(camera, light);
             }
+
+            seaObject.setScale(0.5f, 0.5f, 0.5f);
+            seaObject.render(camera, light);
 
             glfwSwapBuffers(window);
         }

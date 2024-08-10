@@ -1,23 +1,25 @@
 package claude.apstractions.transforms;
 
 import claude.apstractions.UniformManager;
-import claude.apstractions.renderables.Drawable;
+import claude.apstractions.renderables.SeaMesh;
 import claude.apstractions.shaders.Shader;
 import org.joml.Vector3f;
 
+import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 
-public class ObjectInstance extends Transform implements Renderable{
-    Drawable drawable;
+public class SeaObject extends Transform implements Renderable{
+    SeaMesh seaMesh;
     Shader shader;
     UniformManager uniformManager;
 
-    public ObjectInstance(Drawable drawable, Shader shader, UniformManager uniformManager) {
+    public SeaObject(SeaMesh seaMesh, Shader shader, UniformManager uniformManager) {
         super();
-        this.drawable = drawable;
+        this.seaMesh = seaMesh;
         this.shader = shader;
         this.uniformManager = uniformManager;
     }
+
 
     @Override
     public void render(Camera camera, Light light) {
@@ -26,12 +28,15 @@ public class ObjectInstance extends Transform implements Renderable{
         uniformManager.setUniformMatrix4f(shader.getShader(), "projection", camera.getProjectionMatrix());
         uniformManager.setUniformMatrix4f(shader.getShader(), "model", this.getModelMatrix());
         uniformManager.setUniformMatrix4f(shader.getShader(), "view", camera.getViewMatrix());
+
+        float time = (float) glfwGetTime();
+        uniformManager.setUniformFloat(shader.getShader(), "time", time);
+
         uniformManager.setUniformVector3f(shader.getShader(), "viewPos", camera.getPosition());
         uniformManager.setUniformVector3f(shader.getShader(), "lightColor", light.getColor());
         uniformManager.setUniformVector3f(shader.getShader(), "lightPos", light.getPosition());
         uniformManager.setUniformFloat(shader.getShader(), "ambientIntensity", light.getAmbientIntensity());
-        uniformManager.setUniformVector3f(shader.getShader(), "objectColor", new Vector3f(1, 0, 1));
 
-        drawable.draw();
+        seaMesh.draw();
     }
 }

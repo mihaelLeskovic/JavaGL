@@ -6,7 +6,7 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15C.glDeleteBuffers;
 import static org.lwjgl.opengl.GL30C.glBindVertexArray;
 
-public class SimpleTriangleMesh extends Renderable implements Cleanable {
+public class SimpleTriangleMesh extends Drawable implements Cleanable {
     int[] VBO;
     int EBO;
     int numVertices;
@@ -34,7 +34,7 @@ public class SimpleTriangleMesh extends Renderable implements Cleanable {
 
     @Override
     public void draw() {
-        glBindVertexArray(VAO);
+        glBindVertexArray(VAOs[0]);
         glDrawElements(GL_TRIANGLES, numFaces*3, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
     }

@@ -1,13 +1,8 @@
 package claude.apstractions.transforms;
 
-import claude.apstractions.renderables.Renderable;
-import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class Transform {
 
@@ -103,6 +98,22 @@ public class Transform {
         scale.set(scale);
         updateMatrices();
         return this;
+    }
+
+    public Vector3f getFront() {
+        return front;
+    }
+
+    public Vector3f getUp() {
+        return up;
+    }
+
+    public Vector3f getRight() {
+        return right;
+    }
+
+    public Vector3f getScale() {
+        return scale;
     }
 
     public Transform rotate(Vector3f axis, float angle) {
