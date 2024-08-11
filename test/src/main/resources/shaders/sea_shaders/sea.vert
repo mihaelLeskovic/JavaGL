@@ -12,7 +12,7 @@ out vec3 FragPos;
 void main()
 {
     vec3 pos = aPos;
-    pos.y = sin(time + aPos.y) * 0.2; // Adjust 0.1 for wave height
+    pos.y = sin(time + aPos.y) * 0.4; // Adjust 0.1 for wave height
     gl_Position = projection * view * model * vec4(pos, 1.0);
     FragPos = vec3(model * vec4(pos, 1.0));
 }

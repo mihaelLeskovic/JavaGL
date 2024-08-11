@@ -3,10 +3,22 @@ package claude.apstractions.shaders;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER;
 
 public class ShaderFactory {
+    static final private Map<Integer, String> intCodeToShaderType = Map.of(
+            GL_VERTEX_SHADER, "VERTEX",
+            GL_FRAGMENT_SHADER, "FRAGMENT",
+            GL_GEOMETRY_SHADER, "GEOMETRY"
+    );
+
+
     public static int compilePartShader(ShaderModule module){
         return compilePartShader(module.getType(), module.getCode());
     }
@@ -59,5 +71,27 @@ public class ShaderFactory {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static Shader constructShader(String pathToDir, String fileName, Integer... types) {
+        StringBuilder pathBuilder = new StringBuilder(pathToDir);
+
+        if(!pathToDir.endsWith("\\") && !pathToDir.endsWith("/")) pathBuilder.append("\\");
+
+        pathBuilder.append(fileName).append(".");
+
+        ShaderModule[] shaderModules = new ShaderModule[types.length];
+        for(int i=0; i<types.length; i++) {
+            StringBuilder modulePathBuilder = new StringBuilder(pathBuilder);
+            if(intCodeToShaderType.get(types[i]) == null) throw new RuntimeException("Illegal shader type!");
+            modulePathBuilder.append(intCodeToShaderType.get(types[i]).substring(0,4).toLowerCase());
+
+            shaderModules[i] = makeShaderModule(
+                    types[i],
+                    modulePathBuilder.toString()
+            );
+        }
+
+        return makeWholeShader(shaderModules);
     }
 }

@@ -137,38 +137,20 @@ public class Main {
                         .setMoveSpeed(4f)
         );
 
-
-        ShaderModule vertexModule = ShaderFactory.makeShaderModule(
-                GL_VERTEX_SHADER,
+        shader = ShaderFactory.constructShader(
                 renderDocDebugTime ?
-                        "C:\\Users\\dews\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\shaders\\shader.vert"
-                        : "src/main/resources/shaders/shader.vert"
-        );
-        ShaderModule fragmentModule = ShaderFactory.makeShaderModule(
-                GL_FRAGMENT_SHADER,
-                renderDocDebugTime ?
-                        "C:\\Users\\dews\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\shaders\\shader.frag"
-                        : "src/main/resources/shaders/shader.frag"
-        );
-        ShaderModule geometryModule = ShaderFactory.makeShaderModule(
-                GL_GEOMETRY_SHADER,
-                renderDocDebugTime ?
-                        "C:\\Users\\dews\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\shaders\\shader.geom"
-                        : "src/main/resources/shaders/shader.geom"
+                        "C:\\Users\\dews\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\shaders"
+                        : "src/main/resources/shaders",
+                "shader",
+                GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER
         );
 
-        shader = ShaderFactory.makeWholeShader(vertexModule, geometryModule, fragmentModule);
-
-        ShaderModule seaVertexModule = ShaderFactory.makeShaderModule(
-                GL_VERTEX_SHADER,
-                "src/main/resources/shaders/sea_shaders/sea.vert"
-        );
-        ShaderModule seaFragmentModule = ShaderFactory.makeShaderModule(
-                GL_FRAGMENT_SHADER,
-                "src/main/resources/shaders/sea_shaders/sea.frag"
+        Shader seaShader = ShaderFactory.constructShader(
+                "src/main/resources/shaders/sea_shaders/",
+                "sea",
+                GL_VERTEX_SHADER, GL_FRAGMENT_SHADER
         );
 
-        Shader seaShader = ShaderFactory.makeWholeShader(seaVertexModule, seaFragmentModule);
         seaObject = new SeaObject(
                 RenderableFactory.makeSeaMesh(1000, 1),
                 seaShader,
