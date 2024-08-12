@@ -10,11 +10,6 @@ public class PlaneInputManager implements InputManager {
     }
 
     @Override
-    public void processInput(long window) {
-
-    }
-
-    @Override
     public void procesInputDeltaT(long window, float deltaT) {
 
     }

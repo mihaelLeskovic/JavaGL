@@ -11,12 +11,27 @@ public class ObjectInstance extends Transform implements Renderable{
     Drawable drawable;
     Shader shader;
     UniformManager uniformManager;
+    Vector3f color;
 
     public ObjectInstance(Drawable drawable, Shader shader, UniformManager uniformManager) {
         super();
         this.drawable = drawable;
         this.shader = shader;
         this.uniformManager = uniformManager;
+        this.color = new Vector3f((float) Math.random(), (float) Math.random(), (float) Math.random());
+    }
+
+    public Vector3f getColor() {
+        return color;
+    }
+
+    public ObjectInstance setColor(float r, float g, float b) {
+        return setColor(new Vector3f(r, g, b));
+    }
+
+    public ObjectInstance setColor(Vector3f color) {
+        this.color = color;
+        return this;
     }
 
     @Override
@@ -30,7 +45,7 @@ public class ObjectInstance extends Transform implements Renderable{
         uniformManager.setUniformVector3f(shader.getShader(), "lightColor", light.getColor());
         uniformManager.setUniformVector3f(shader.getShader(), "lightPos", light.getPosition());
         uniformManager.setUniformFloat(shader.getShader(), "ambientIntensity", light.getAmbientIntensity());
-        uniformManager.setUniformVector3f(shader.getShader(), "objectColor", new Vector3f(1, 0, 1));
+        uniformManager.setUniformVector3f(shader.getShader(), "objectColor", this.color);
 
         drawable.draw();
     }

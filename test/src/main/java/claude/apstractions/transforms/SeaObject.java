@@ -12,6 +12,15 @@ public class SeaObject extends Transform implements Renderable{
     SeaMesh seaMesh;
     Shader shader;
     UniformManager uniformManager;
+    float height = 0.4f;
+
+    public float getHeight() {
+        return height;
+    }
+
+    public void setHeight(float height) {
+        this.height = height;
+    }
 
     public SeaObject(SeaMesh seaMesh, Shader shader, UniformManager uniformManager) {
         super();
@@ -36,6 +45,8 @@ public class SeaObject extends Transform implements Renderable{
         uniformManager.setUniformVector3f(shader.getShader(), "lightColor", light.getColor());
         uniformManager.setUniformVector3f(shader.getShader(), "lightPos", light.getPosition());
         uniformManager.setUniformFloat(shader.getShader(), "ambientIntensity", light.getAmbientIntensity());
+
+        uniformManager.setUniformFloat(shader.getShader(), "height", height);
 
         seaMesh.draw();
     }

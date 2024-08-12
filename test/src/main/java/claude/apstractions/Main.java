@@ -2,10 +2,12 @@ package claude.apstractions;
 
 import claude.apstractions.input.InputManager;
 import claude.apstractions.input.TestCameraInputManager;
+import claude.apstractions.physics.PhysicsWorker;
+import claude.apstractions.renderables.DrawableFactory;
 import claude.apstractions.renderables.RenderableFactory;
+import claude.apstractions.renderables.TerrainObject;
 import claude.apstractions.shaders.Shader;
 import claude.apstractions.shaders.ShaderFactory;
-import claude.apstractions.shaders.ShaderModule;
 import claude.apstractions.transforms.Camera;
 import claude.apstractions.transforms.Light;
 import claude.apstractions.transforms.ObjectInstance;
@@ -52,6 +54,8 @@ public class Main {
     List<InputManager> inputManagers;
     boolean lockMouse = true;
     SeaObject seaObject;
+    TerrainObject terrainObject;
+    ObjectInstance testCube;
 
     public Main(String[] args) {
         this.args = args;
@@ -130,12 +134,6 @@ public class Main {
 
         camera = new Camera();
         inputManagers = new ArrayList<>();
-        inputManagers.add(
-                new TestCameraInputManager(window, width, height, camera, lockMouse)
-                        .setySens(ySens)
-                        .setxSens(xSens)
-                        .setMoveSpeed(4f)
-        );
 
         shader = ShaderFactory.constructShader(
                 renderDocDebugTime ?
@@ -145,6 +143,19 @@ public class Main {
                 GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER
         );
 
+        ObjectInstance centerCube = new ObjectInstance(
+                DrawableFactory.makeSimpleTriangleMesh(renderDocDebugTime ?
+                        "C:\\Users\\dews\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\models\\kocka.obj"
+                        : "src\\main\\resources\\models\\kocka.obj"
+                ),
+                shader,
+                uniformManager
+        );
+        centerCube.setScale(0.01f, 0.01f, 0.01f);
+        centerCube.setColor(0, 1, 0);
+
+        testCube = centerCube;
+
         Shader seaShader = ShaderFactory.constructShader(
                 "src/main/resources/shaders/sea_shaders/",
                 "sea",
@@ -152,13 +163,29 @@ public class Main {
         );
 
         seaObject = new SeaObject(
-                RenderableFactory.makeSeaMesh(1000, 1),
+                DrawableFactory.makeSeaMesh(1000, 4),
                 seaShader,
                 uniformManager
         );
 
+        Shader terrainShader = ShaderFactory.constructShader(
+                "src/main/resources/shaders/terrain_shaders/",
+                "terrain",
+                GL_VERTEX_SHADER, GL_FRAGMENT_SHADER
+        );
+
+        terrainObject = RenderableFactory.constructTerrainObject(
+                terrainShader,
+                uniformManager,
+                30,
+                1,
+                5
+        );
+
+//        terrainObject.translateGlobal(new Vector3f(0, -2, 0));
+
         ObjectInstance planeInstance = new ObjectInstance(
-                RenderableFactory.makeSimpleTriangleMesh(renderDocDebugTime ?
+                DrawableFactory.makeSimpleTriangleMesh(renderDocDebugTime ?
                                 "C:\\Users\\dews\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\models\\jet.obj"
                                 : "src\\main\\resources\\models\\jet.obj"
                 ),
@@ -171,23 +198,15 @@ public class Main {
                 1, 0, 0, 0,
                 0, 0, 0, 1
         ));
-        planeInstance.translateGlobal(new Vector3f(0, 1, 0));
+        planeInstance
+//                .setColor(new Vector3f(1, 0, 1))
+                .translateGlobal(new Vector3f(0, 1, 0));
 
         objectInstances.add(planeInstance);
 //        planeInstance.setScale(0.05f, 0.05f, 0.05f);
 
-        ObjectInstance centerCube = new ObjectInstance(
-                RenderableFactory.makeSimpleTriangleMesh(renderDocDebugTime ?
-                        "C:\\Users\\dews\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\models\\kocka.obj"
-                        : "src\\main\\resources\\models\\kocka.obj"
-                ),
-                shader,
-                uniformManager
-        );
-        centerCube.setScale(0.01f, 0.01f, 0.01f);
-
         ObjectInstance centerCube2 = new ObjectInstance(
-                RenderableFactory.makeSimpleTriangleMesh(renderDocDebugTime ?
+                DrawableFactory.makeSimpleTriangleMesh(renderDocDebugTime ?
                         "C:\\Users\\dews\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\models\\kocka.obj"
                         : "src\\main\\resources\\models\\kocka.obj"
                 ),
@@ -207,6 +226,16 @@ public class Main {
         light = new Light();
         light.setPosition(new Vector3f(300, 50f, -1.5f));
         light.setLookDirection(new Vector3f(0, 2, -1), new Vector3f(0, 1, 0));
+
+        inputManagers.add(
+                new TestCameraInputManager(window, width, height, camera, lockMouse)
+                        .setySens(ySens)
+                        .setxSens(xSens)
+                        .setMoveSpeed(4f)
+                        .addTestThings(testCube, terrainObject)
+        );
+
+        seaObject.setScale(0.5f, 0.5f, 0.5f);
     }
 
     private void loop() {
@@ -214,6 +243,15 @@ public class Main {
         glEnable(GL_DEPTH_TEST);
 
         lastTime = Instant.now();
+
+//        testCube.setScale(1,1,1);
+
+        // HEIGHTMAP TESTING
+        /*
+        int i=10; int j=10;
+        Vector3f positionOfCube = terrainObject.getOrigin();
+        float cubeMoveTimer = 0;
+         /**/
 
         while (!glfwWindowShouldClose(window)) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -227,21 +265,59 @@ public class Main {
 //            model.get(modelBuffer);
 
             objectInstances.get(0).rotate(new Vector3f(0, 1, 0), 0.5f * deltaT);
-            objectInstances.get(0).translateLocal(new Vector3f(0, 0, 1).mul(0.5f*deltaT));
+            objectInstances.get(0).translateLocal(new Vector3f(0, 0, 1).mul(0.5f*deltaT))
+                    .setPosition(terrainObject.getOrigin().add(0, 0, 1));
+//            .add(terrainObject.getSpan(), 0, terrainObject.getSpan())
 //            objectInstances.get(0).translateGlobal(new Vector3f(0, 3, 0));
 
             glfwPollEvents();
             for(InputManager inputManager : inputManagers) {
-                inputManager.processInput(window);
                 inputManager.procesInputDeltaT(window, deltaT);
             }
+
+            // HEIGHTMAP TESTING
+            /*
+            cubeMoveTimer += deltaT;
+            if(cubeMoveTimer > 1) {
+                cubeMoveTimer = 0;
+                float x = (i) * terrainObject.getDivisionSpan();
+                float z = (j) * terrainObject.getDivisionSpan();
+                float addX = (float) (Math.random() * terrainObject.getDivisionSpan());
+                float addZ = (float) (Math.random() * terrainObject.getDivisionSpan());
+                positionOfCube = terrainObject.getOrigin();
+                positionOfCube.add(
+                        x + addX,
+                        0,
+                        z + addZ
+                );
+                positionOfCube.y = terrainObject.getHeightAt(positionOfCube);
+                positionOfCube.add(new Vector3f(
+                        0,
+                        0,
+                        0
+                ));
+                j++;
+                System.out.println("i:"+i + " j:"+j);
+                if(j>=30) {
+                    j=0;
+                    i++;
+                }
+            }
+
+            camera.setPosition(positionOfCube.add(camera.getFront().mul(-2, new Vector3f()), new Vector3f()));
+            testCube.setPosition(positionOfCube);
+            /**/
+
+            testCube.render(camera,light);
 
             for(ObjectInstance objectInstance : objectInstances) {
                 objectInstance.render(camera, light);
             }
 
-            seaObject.setScale(0.5f, 0.5f, 0.5f);
             seaObject.render(camera, light);
+//            seaObject.setHeight(0.);
+
+            terrainObject.render(camera, light);
 
             glfwSwapBuffers(window);
         }

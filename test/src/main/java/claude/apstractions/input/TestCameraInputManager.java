@@ -1,6 +1,8 @@
 package claude.apstractions.input;
 
+import claude.apstractions.renderables.TerrainObject;
 import claude.apstractions.transforms.Camera;
+import claude.apstractions.transforms.ObjectInstance;
 import claude.apstractions.transforms.Transform;
 import org.joml.Vector3f;
 
@@ -12,20 +14,22 @@ public class TestCameraInputManager implements InputManager{
     private double xSens, ySens;
     private float moveSpeed;
     private Transform movable;
+    private ObjectInstance testedMovable;
+    private TerrainObject terrainObject;
+    private float testedMovableDistance;
     private boolean shouldClose = false;
     private boolean shouldChangeCull = false;
     private boolean firstMouse = true;
     private boolean lockMouse;
+    private boolean shouldToggleLock = false;
     private int width, height;
 
     //initialized array values to avoid initialization every time we poll for cursor pos
     private double[] xPos = new double[1];
     private double[] yPos = new double[1];
 
-    private float lastX = getCenterX();
-    private float lastY = getCenterY();
-    private float yaw = 0.0f;
-    private float pitch = 0.0f;
+    private float lastX;
+    private float lastY;
 
     public Transform getMovable() {
         return movable;
@@ -71,8 +75,16 @@ public class TestCameraInputManager implements InputManager{
         return height/2;
     }
 
+    public TestCameraInputManager addTestThings(ObjectInstance testedMovable, TerrainObject terrainObject) {
+        this.terrainObject = terrainObject;
+        this.testedMovable = testedMovable;
+        this.testedMovableDistance = 1f;
+
+        return this;
+    }
+
     @Override
-    public void processInput(long window) {
+    public void procesInputDeltaT(long window, float deltaT) {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
             shouldClose = true;
         }
@@ -92,10 +104,7 @@ public class TestCameraInputManager implements InputManager{
             }
             shouldChangeCull = false;
         }
-    }
 
-    @Override
-    public void procesInputDeltaT(long window, float deltaT) {
         if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
             movable.translateLocal(new Vector3f(0, 0, -1).mul(deltaT * moveSpeed));
         }
@@ -114,8 +123,35 @@ public class TestCameraInputManager implements InputManager{
         if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
             movable.translateLocal(new Vector3f(0, -1, 0).mul(deltaT * moveSpeed));
         }
+        if(glfwGetKey(window, GLFW_KEY_I) == GLFW_RELEASE) {
+            if(shouldToggleLock) lockMouse = !lockMouse;
+            shouldToggleLock = false;
+        }
+        if(glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) {
+            shouldToggleLock = true;
+        }
 
         processMouse(window, deltaT);
+
+        testedMovableProcedure(window, deltaT);
+    }
+
+    private void testedMovableProcedure(long window, float deltaT) {
+        if(testedMovable == null || terrainObject == null) return;
+
+        if(glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) {
+            testedMovableDistance += 1*deltaT;
+        }
+        if(glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
+            testedMovableDistance -= 1*deltaT;
+        }
+
+        testedMovable.setPosition(new Vector3f(movable.getPosition()).add(new Vector3f(movable.getFront()).mul(testedMovableDistance)));
+        if(terrainObject.isAbovePoint(testedMovable.getPosition())) {
+            testedMovable.setColor(1, 0, 0);
+        } else {
+            testedMovable.setColor(0, 1, 0);
+        }
     }
 
     private void processMouse(long window, float deltaT) {
@@ -133,22 +169,19 @@ public class TestCameraInputManager implements InputManager{
         }
 
         float xoffset = xpos - lastX;
-        float yoffset = lastY - ypos; // Reversed since y-coordinates go from bottom to top
+        float yoffset = ypos - lastY;
 
         xoffset *= xSens;
         yoffset *= ySens;
 
-        // Calculate rotation around Y-axis (yaw)
         if (xoffset != 0) {
             movable.rotate(new Vector3f(0, 1, 0), (float) Math.toRadians(-xoffset));
         }
 
-        // Calculate rotation around X-axis (pitch)
         if (yoffset != 0) {
-            movable.rotate(movable.getRight(), (float) Math.toRadians(yoffset));
+            movable.rotate(movable.getRight(), (float) Math.toRadians(-yoffset));
         }
 
-        // Reset cursor to center if it's too far
         if (Math.abs(xpos - getCenterX()) > width / 4 || Math.abs(ypos - getCenterY()) > height / 4) {
             glfwSetCursorPos(window, getCenterX(), getCenterY());
             xpos = getCenterX();

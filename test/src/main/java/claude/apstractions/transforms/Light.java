@@ -5,14 +5,25 @@ import org.joml.Vector3f;
 public class Light extends Transform{
     private Vector3f color;
     private float ambientIntensity;
+    private Vector3f lightDirection;
+
+    public Vector3f getLightDirection() {
+        return lightDirection;
+    }
+
+    public void setLightDirection(Vector3f lightDirection) {
+        this.lightDirection = lightDirection;
+    }
 
     public Light() {
         super();
         this.color = new Vector3f(1, 1, 1);
         this.ambientIntensity = 0.4f;
+        this.lightDirection = new Vector3f(1, 0, 1).normalize();
     }
 
     public Light(Vector3f intensity, float ambientIntensity) {
+        this();
         this.color = intensity;
         this.ambientIntensity = ambientIntensity;
     }

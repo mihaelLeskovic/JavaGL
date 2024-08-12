@@ -5,10 +5,11 @@ in vec3 FragPos;
 out vec4 FragColor;
 
 uniform vec3 viewPos;
+uniform float height;
 
 void main()
 {
-    float depth = (FragPos.y + 0.1) / 0.2; // Normalize depth
+    float depth = (FragPos.y + 0.1) / (2*height);
     vec3 shallowColor = vec3(0.0, 0.2, 0.5);
     vec3 deepColor = vec3(0.0, 0.0, 0.3);
 
