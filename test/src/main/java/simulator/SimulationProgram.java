@@ -3,6 +3,7 @@ package simulator;
 import simulator.input.InputManager;
 import simulator.input.StateControlsInputManager;
 import simulator.input.TestCameraInputManager;
+import simulator.input.TestPhysicalCamera;
 import simulator.physics.PhysicalObject;
 import simulator.drawables.DrawableFactory;
 import simulator.drawables.RenderableFactory;
@@ -58,10 +59,11 @@ public class SimulationProgram implements Runnable{
     List<InputManager> inputManagers;
     boolean lockMouse = true;
     SeaObject seaObject;
-    TerrainObject terrainObject;
+    List<TerrainObject> terrainObjects;
     ObjectInstance testCube;
     PhysicalObject testPhysicalObject;
     List<Cleanable> cleanables;
+    PhysicalObject cameraPhysicalObject;
 
     public SimulationProgram(String[] args, WindowSwitchListener main) {
         this.args = args;
@@ -105,6 +107,7 @@ public class SimulationProgram implements Runnable{
         objectInstances = new ArrayList<>();
         uniformManager = new UniformManager();
         cleanables = new ArrayList<>();
+        terrainObjects = new ArrayList<>();
 
         GLFWErrorCallback.createPrint(System.err).set();
 
@@ -176,10 +179,11 @@ public class SimulationProgram implements Runnable{
         );
 
         seaObject = new SeaObject(
-                DrawableFactory.makeSeaMesh(1000, 4),
+                DrawableFactory.makeSeaMesh(2000, 10),
                 seaShader,
                 uniformManager
         );
+        seaObject.setHeight(3);
         cleanables.add(seaObject);
 
         Shader terrainShader = ShaderFactory.constructShader(
@@ -188,14 +192,26 @@ public class SimulationProgram implements Runnable{
                 GL_VERTEX_SHADER, GL_FRAGMENT_SHADER
         );
 
-        terrainObject = RenderableFactory.constructTerrainObject(
+        TerrainObject terrainObjectMain = RenderableFactory.constructTerrainObject(
                 terrainShader,
                 uniformManager,
-                30,
+                200,
                 1,
-                5
+                20
         );
-        cleanables.add(terrainObject);
+        terrainObjects.add(terrainObjectMain);
+
+        TerrainObject terrainObject2 = RenderableFactory.constructTerrainObject(
+                terrainShader,
+                uniformManager,
+                50,
+                1,
+                40
+        );
+        terrainObject2.translateGlobal(new Vector3f(-20, 0, -20));
+        terrainObjects.add(terrainObject2);
+
+        cleanables.add(terrainObjectMain);
 
 //        terrainObject.translateGlobal(new Vector3f(0, -2, 0));
 
@@ -234,16 +250,21 @@ public class SimulationProgram implements Runnable{
         light.setPosition(new Vector3f(300, 50f, -1.5f));
         light.setLookDirection(new Vector3f(0, 2, -1), new Vector3f(0, 1, 0));
 
+        cameraPhysicalObject = new PhysicalObject(1, camera);
         inputManagers.add(
-                new TestCameraInputManager(window, width, height, camera, lockMouse)
+                new TestPhysicalCamera(window, width, height, cameraPhysicalObject, lockMouse)
                         .setySens(ySens)
                         .setxSens(xSens)
-                        .setMoveSpeed(4f)
-                        .addTestThings(testCube, terrainObject)
+                        .setMoveSpeed(50f)
+                        .addTestThings(testCube, terrainObjects)
         );
         inputManagers.add(new StateControlsInputManager());
 
         seaObject.setScale(0.5f, 0.5f, 0.5f);
+
+
+        double greatestHeight = terrainObjects.stream().mapToDouble(TerrainObject::getMaxHeight).max().getAsDouble();
+        terrainObjects.stream().forEach(terrainObject -> terrainObject.setMaxHeight((float)greatestHeight));
     }
 
     private void loop() {
@@ -261,7 +282,7 @@ public class SimulationProgram implements Runnable{
         float cubeMoveTimer = 0;
          /**/
 
-        testPhysicalObject.setVelocity(new Vector3f(5, 10, 0));
+//        testPhysicalObject.setVelocity(new Vector3f(5, 10, 0));
 
         while (!glfwWindowShouldClose(window)) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -278,8 +299,8 @@ public class SimulationProgram implements Runnable{
 //            testPhysicalObject.update(deltaT);
 
             objectInstances.get(0).rotate(new Vector3f(0, 1, 0), 0.5f * deltaT);
-            objectInstances.get(0).translateLocal(new Vector3f(0, 0, 1).mul(0.5f*deltaT))
-                    .setPosition(terrainObject.getOrigin().add(0, 0, 1));
+//            objectInstances.get(0).translateLocal(new Vector3f(0, 0, 1).mul(0.5f*deltaT))
+//                    .setPosition(te.getOrigin().add(0, 0, 1));
 //            .add(terrainObject.getSpan(), 0, terrainObject.getSpan())
 //            objectInstances.get(0).translateGlobal(new Vector3f(0, 3, 0));
 
@@ -287,6 +308,8 @@ public class SimulationProgram implements Runnable{
             for(InputManager inputManager : inputManagers) {
                 inputManager.procesInputDeltaT(window, deltaT);
             }
+
+            if(cameraPhysicalObject!=null) cameraPhysicalObject.update(deltaT);
 
             // HEIGHTMAP TESTING
             /*
@@ -321,7 +344,7 @@ public class SimulationProgram implements Runnable{
             testCube.setPosition(positionOfCube);
             /**/
 
-            testPhysicalObject.render(camera, light);
+            testCube.render(camera, light);
 
             for(ObjectInstance objectInstance : objectInstances) {
                 objectInstance.render(camera, light);
@@ -330,7 +353,9 @@ public class SimulationProgram implements Runnable{
             seaObject.render(camera, light);
 //            seaObject.setHeight(0.);
 
-            terrainObject.render(camera, light);
+            for(TerrainObject terrainObject : terrainObjects) {
+                terrainObject.render(camera, light);
+            }
 
             glfwSwapBuffers(window);
         }

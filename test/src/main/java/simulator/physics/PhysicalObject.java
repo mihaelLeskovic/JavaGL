@@ -1,29 +1,45 @@
 package simulator.physics;
 
-import simulator.transforms.Camera;
-import simulator.transforms.Light;
-import simulator.transforms.ObjectInstance;
-import simulator.transforms.Renderable;
+import org.joml.Matrix4f;
+import simulator.transforms.*;
 import org.joml.Vector3f;
 
-public class PhysicalObject implements Forceable, Updateable, Renderable {
+public class PhysicalObject implements Forceable, Updateable {
+
     //in kg
     float mass;
+
     //in m/s
     //global
-    Vector3f lastForce;
     Vector3f velocity;
-    ObjectInstance objectInstance;
 
-    public ObjectInstance getObjectInstance() {
-        return objectInstance;
+    //rotation multipliers
+    float globalAngularSensitivity = 0.5f;
+
+    float drag = 0.1f;
+
+    Vector3f lastForce;
+    Matrix4f globalTorqueMatrix;
+    Transform transform;
+
+    public Transform getTransform() {
+        return transform;
     }
 
-    public PhysicalObject(float mass, ObjectInstance objectInstance) {
+    public PhysicalObject(float mass, Transform transform) {
         this.mass = mass;
-        this.objectInstance = objectInstance;
+        this.transform = transform;
         this.velocity = new Vector3f(0);
         this.lastForce = new Vector3f(0);
+        this.globalTorqueMatrix = new Matrix4f().identity();
+    }
+
+    public float getGlobalAngularSensitivity() {
+        return globalAngularSensitivity;
+    }
+
+    public void setGlobalAngularSensitivity(float globalAngularSensitivity) {
+        this.globalAngularSensitivity = globalAngularSensitivity;
     }
 
     @Override
@@ -32,25 +48,47 @@ public class PhysicalObject implements Forceable, Updateable, Renderable {
     }
 
     @Override
+    public void applyForceLocal(Vector3f force) {
+        lastForce.add(
+                new Vector3f(transform.getRight()).mul(force.x)
+                        .add(new Vector3f(transform.getUp()).mul(force.y))
+                        .add(new Vector3f(transform.getFront()).mul(-force.z))
+        );
+    }
+
+    @Override
     public void applyAcceleration(Vector3f acceleration) {
         lastForce.add(acceleration.mul(mass));
     }
 
     @Override
-    public void applyGlobalRotation(Vector3f selfMovement) {
-
+    public void applyGlobalTorque(float aroundX, float aroundY, float aroundZ) {
+        if(aroundX!=0) globalTorqueMatrix.rotate(aroundX, new Vector3f(1,0,0));
+        if(aroundY!=0) globalTorqueMatrix.rotate(aroundY, new Vector3f(0,1,0));
+        if(aroundZ!=0) globalTorqueMatrix.rotate(aroundZ, new Vector3f(0,0,1));
     }
 
     @Override
-    public void applyLocalRotation(Vector3f selfMovement) {
-
+    public void applyTorqueAroundAxis(Vector3f axis, float amount) {
+        globalTorqueMatrix.rotate(amount, axis);
     }
 
     // returns a delta velocity which is gained because of the force
     private Vector3f consumeLastForce(float deltaT) {
+        if(lastForce.lengthSquared() == 0) return new Vector3f(velocity).mul(deltaT);
+
         Vector3f deltaV = new Vector3f(lastForce).div(mass).mul(deltaT);
         lastForce.set(0);
-        return deltaV;
+        velocity.add(deltaV);
+        return new Vector3f(velocity).mul(deltaT);
+    }
+
+    private void consumeGlobalTorque(float deltaT) {
+        if(globalTorqueMatrix.equals(new Matrix4f().identity(), 0.0001f)) return;
+
+        globalTorqueMatrix.scale(deltaT * globalAngularSensitivity);
+        transform.applyRotationMatrix4f(globalTorqueMatrix);
+        globalTorqueMatrix.identity();
     }
 
     public float getMass() {
@@ -67,13 +105,8 @@ public class PhysicalObject implements Forceable, Updateable, Renderable {
 
     @Override
     public void update(float deltaT) {
-        velocity.add(consumeLastForce(deltaT));
-
-        objectInstance.translateGlobal(new Vector3f(velocity).mul(deltaT));
-    }
-
-    @Override
-    public void render(Camera camera, Light light) {
-        objectInstance.render(camera, light);
+        Vector3f deltaX = consumeLastForce(deltaT);
+        transform.translateGlobal(deltaX);
+        consumeGlobalTorque(deltaT);
     }
 }

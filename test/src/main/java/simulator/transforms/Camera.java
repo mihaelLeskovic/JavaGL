@@ -20,7 +20,7 @@ public class Camera extends Transform {
         this.b = -0.5f;
         this.t = 0.5f;
         this.n = 1f;
-        this.f = 100f;
+        this.f = 500f;
         projectionMatrix = new Matrix4f().frustum(l, r, b, t, n, f);
     }
 

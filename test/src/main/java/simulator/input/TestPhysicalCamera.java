@@ -1,19 +1,18 @@
 package simulator.input;
 
 import simulator.drawables.TerrainObject;
-import simulator.transforms.Camera;
+import simulator.physics.PhysicalObject;
 import simulator.transforms.ObjectInstance;
-import simulator.transforms.Transform;
 import org.joml.Vector3f;
 
 import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-public class TestCameraInputManager implements InputManager{
+public class TestPhysicalCamera implements InputManager{
     private double xSens, ySens;
     private float moveSpeed;
-    private Transform movable;
+    private PhysicalObject physicalObject;
     private ObjectInstance testedMovable;
     private List<TerrainObject> terrainObjects;
     private float testedMovableDistance;
@@ -29,16 +28,16 @@ public class TestCameraInputManager implements InputManager{
     private float lastX;
     private float lastY;
 
-    public Transform getMovable() {
-        return movable;
+    public PhysicalObject getPhysicalObject() {
+        return physicalObject;
     }
 
-    public void setMovable(Camera movable) {
-        this.movable = movable;
+    public void setPhysicalObject(PhysicalObject physicalObject) {
+        this.physicalObject = physicalObject;
     }
 
-    public TestCameraInputManager(long window, int width, int height, Transform movable, boolean lockMouse) {
-        this.movable = movable;
+    public TestPhysicalCamera(long window, int width, int height, PhysicalObject physicalObject, boolean lockMouse) {
+        this.physicalObject = physicalObject;
         this.lockMouse = lockMouse;
         this.width = width;
         this.height = height;
@@ -50,17 +49,17 @@ public class TestCameraInputManager implements InputManager{
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     }
 
-    public TestCameraInputManager setMoveSpeed(float moveSpeed) {
+    public TestPhysicalCamera setMoveSpeed(float moveSpeed) {
         this.moveSpeed = moveSpeed;
         return this;
     }
 
-    public TestCameraInputManager setxSens(double xSens) {
+    public TestPhysicalCamera setxSens(double xSens) {
         this.xSens = xSens;
         return this;
     }
 
-    public TestCameraInputManager setySens(double ySens) {
+    public TestPhysicalCamera setySens(double ySens) {
         this.ySens = ySens;
         return this;
     }
@@ -73,7 +72,7 @@ public class TestCameraInputManager implements InputManager{
         return height/2;
     }
 
-    public TestCameraInputManager addTestThings(ObjectInstance testedMovable, List<TerrainObject> terrainObjects) {
+    public TestPhysicalCamera addTestThings(ObjectInstance testedMovable, List<TerrainObject> terrainObjects) {
         this.terrainObjects = terrainObjects;
         this.testedMovable = testedMovable;
         this.testedMovableDistance = 1f;
@@ -85,22 +84,22 @@ public class TestCameraInputManager implements InputManager{
     public void procesInputDeltaT(long window, float deltaT) {
 
         if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-            movable.translateLocal(new Vector3f(0, 0, -1).mul(deltaT * moveSpeed));
+            physicalObject.applyForceLocal(new Vector3f(0, 0, -moveSpeed));
         }
         if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-            movable.translateLocal(new Vector3f(0, 0, 1).mul(deltaT * moveSpeed));
+            physicalObject.applyForce(new Vector3f(physicalObject.getTransform().getFront()).mul(-moveSpeed));
         }
         if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-            movable.translateLocal(new Vector3f(-1, 0, 0).mul(deltaT * moveSpeed));
+            physicalObject.applyForce(new Vector3f(physicalObject.getTransform().getRight()).mul(-moveSpeed));
         }
         if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-            movable.translateLocal(new Vector3f(1, 0, 0).mul(deltaT * moveSpeed));
+            physicalObject.applyForce(new Vector3f(physicalObject.getTransform().getRight()).mul(moveSpeed));
         }
         if(glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-            movable.translateLocal(new Vector3f(0, 1, 0).mul(deltaT * moveSpeed));
+            physicalObject.applyForce(new Vector3f(0, 1, 0).mul(moveSpeed));
         }
         if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-            movable.translateLocal(new Vector3f(0, -1, 0).mul(deltaT * moveSpeed));
+            physicalObject.applyForce(new Vector3f(0, -1, 0).mul(moveSpeed));
         }
         if(glfwGetKey(window, GLFW_KEY_I) == GLFW_RELEASE) {
             if(shouldToggleLock) {
@@ -130,7 +129,7 @@ public class TestCameraInputManager implements InputManager{
             testedMovableDistance -= 1*deltaT;
         }
 
-        testedMovable.setPosition(new Vector3f(movable.getPosition()).add(new Vector3f(movable.getFront()).mul(testedMovableDistance)));
+        testedMovable.setPosition(new Vector3f(physicalObject.getTransform().getPosition()).add(new Vector3f(physicalObject.getTransform().getFront()).mul(testedMovableDistance)));
         for(TerrainObject to : terrainObjects) {
             if(to.isAbovePoint(testedMovable.getPosition())) {
                 testedMovable.setColor(1, 0, 0);
@@ -162,11 +161,11 @@ public class TestCameraInputManager implements InputManager{
         yoffset *= ySens;
 
         if (xoffset != 0) {
-            movable.rotate(new Vector3f(0, 1, 0), (float) Math.toRadians(-xoffset));
+            physicalObject.getTransform().rotate(new Vector3f(0, 1, 0), (float) Math.toRadians(-xoffset));
         }
 
         if (yoffset != 0) {
-            movable.rotate(movable.getRight(), (float) Math.toRadians(-yoffset));
+            physicalObject.getTransform().rotate(physicalObject.getTransform().getRight(), (float) Math.toRadians(-yoffset));
         }
 
         if (Math.abs(xpos - getCenterX()) > width / 4 || Math.abs(ypos - getCenterY()) > height / 4) {

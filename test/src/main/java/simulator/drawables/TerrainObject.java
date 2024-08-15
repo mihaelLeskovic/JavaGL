@@ -25,6 +25,10 @@ public class TerrainObject extends Transform implements Renderable, Cleanable{
         return span;
     }
 
+    public void setMaxHeight(float maxHeight) {
+        this.maxHeight = maxHeight;
+    }
+
     //returns bottom-left point (i=0, j=0)
     public Vector3f getOrigin() {
         return getPosition().sub(span/2, 0, span/2, new Vector3f());
@@ -55,15 +59,12 @@ public class TerrainObject extends Transform implements Renderable, Cleanable{
         uniformManager.setUniformMatrix4f(shader.getShader(), "model", this.getModelMatrix());
         uniformManager.setUniformMatrix4f(shader.getShader(), "view", camera.getViewMatrix());
 
-        float time = (float) glfwGetTime();
-        uniformManager.setUniformFloat(shader.getShader(), "time", time);
-
         uniformManager.setUniformVector3f(shader.getShader(), "viewPos", camera.getPosition());
         uniformManager.setUniformVector3f(shader.getShader(), "lightColor", light.getColor());
         uniformManager.setUniformVector3f(shader.getShader(), "lightDirection", light.getLightDirection());
         uniformManager.setUniformFloat(shader.getShader(), "ambientIntensity", light.getAmbientIntensity());
 
-        uniformManager.setUniformFloat(shader.getShader(), "height", maxHeight);
+        uniformManager.setUniformFloat(shader.getShader(), "maxHeight", maxHeight);
 
         terrainMesh.draw();
     }

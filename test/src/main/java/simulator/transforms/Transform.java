@@ -175,4 +175,12 @@ public class Transform {
         updateMatrices();
         return this;
     }
+
+    public Transform applyRotationMatrix4f(Matrix4f mat) {
+        mat.transformPosition(this.up);
+        mat.transformPosition(this.front);
+        mat.transformPosition(this.right);
+        updateMatrices();
+        return this;
+    }
 }

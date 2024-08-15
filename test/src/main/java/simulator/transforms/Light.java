@@ -19,7 +19,7 @@ public class Light extends Transform{
         super();
         this.color = new Vector3f(1, 1, 1);
         this.ambientIntensity = 0.4f;
-        this.lightDirection = new Vector3f(1, 0, 1).normalize();
+        this.lightDirection = new Vector3f(0, -1, 1).normalize();
     }
 
     public Light(Vector3f intensity, float ambientIntensity) {

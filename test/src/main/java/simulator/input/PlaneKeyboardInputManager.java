@@ -2,10 +2,10 @@ package simulator.input;
 
 import simulator.physics.PhysicalObject;
 
-public class PlaneInputManager implements InputManager {
+public class PlaneKeyboardInputManager implements InputManager {
     private PhysicalObject planePO;
 
-    public PlaneInputManager(PhysicalObject planePO) {
+    public PlaneKeyboardInputManager(PhysicalObject planePO) {
         this.planePO = planePO;
     }
 

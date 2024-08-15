@@ -18,7 +18,7 @@ import static org.lwjgl.opengl.GL30.glGenVertexArrays;
 
 public abstract class RenderableFactory {
     public static TerrainObject constructTerrainObject(Shader shader, UniformManager uniformManager, float span, float divisionSpan, float maxHeight) {
-        return constructTerrainObject(shader, uniformManager, null, span, divisionSpan, maxHeight, 0, 0.4f);
+        return constructTerrainObject(shader, uniformManager, null, span, divisionSpan, maxHeight, -1, 2f);
     }
 
     //calculating the average of neighboring triangles' normals'
@@ -88,8 +88,8 @@ public abstract class RenderableFactory {
                 float heightModifier = gaussian + noise[i][j];
                 heights[i][j] = heightModifier * maxHeight;
 
-                if(heights[i][j] > waterLevel && heights[i][j] < waterLevel+maxWaterHeight) {
-                    heights[i][j] = -1;
+                if(heights[i][j] > waterLevel && heights[i][j] < maxWaterHeight) {
+                    heights[i][j] = waterLevel - 1;
                 }
 
                 maxGeneratedHeight = Math.max(maxGeneratedHeight, heights[i][j]);
