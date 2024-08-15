@@ -14,32 +14,37 @@ public class PhysicalObject implements Forceable, Updateable {
     Vector3f velocity;
 
     //rotation multipliers
-    float globalAngularSensitivity = 0.5f;
+    float angularSensitivity = 0.5f;
 
-    float drag = 0.1f;
+    Vector3f angularVelocity;
+
+    float drag = 0.9f;
+    float angularDrag = 2f;
 
     Vector3f lastForce;
-    Matrix4f globalTorqueMatrix;
     Transform transform;
+    CollisionOverseer collisionOverseer;
+    //TODO collision overseer stuff
 
     public Transform getTransform() {
         return transform;
     }
 
-    public PhysicalObject(float mass, Transform transform) {
+    public PhysicalObject(float mass, Transform transform, CollisionOverseer collisionOverseer) {
         this.mass = mass;
         this.transform = transform;
         this.velocity = new Vector3f(0);
         this.lastForce = new Vector3f(0);
-        this.globalTorqueMatrix = new Matrix4f().identity();
+        this.angularVelocity = new Vector3f(0);
+        this.collisionOverseer = collisionOverseer;
     }
 
-    public float getGlobalAngularSensitivity() {
-        return globalAngularSensitivity;
+    public PhysicalObject(float mass, Transform transform) {
+        this(mass, transform, null);
     }
 
-    public void setGlobalAngularSensitivity(float globalAngularSensitivity) {
-        this.globalAngularSensitivity = globalAngularSensitivity;
+    public void setAngularSensitivity(float angularSensitivity) {
+        this.angularSensitivity = angularSensitivity;
     }
 
     @Override
@@ -63,32 +68,49 @@ public class PhysicalObject implements Forceable, Updateable {
 
     @Override
     public void applyGlobalTorque(float aroundX, float aroundY, float aroundZ) {
-        if(aroundX!=0) globalTorqueMatrix.rotate(aroundX, new Vector3f(1,0,0));
-        if(aroundY!=0) globalTorqueMatrix.rotate(aroundY, new Vector3f(0,1,0));
-        if(aroundZ!=0) globalTorqueMatrix.rotate(aroundZ, new Vector3f(0,0,1));
+        if(aroundX!=0) applyTorqueAroundAxis(new Vector3f(1, 0, 0), aroundX);
+        if(aroundY!=0) applyTorqueAroundAxis(new Vector3f(0, 1, 0), aroundY);
+        if(aroundZ!=0) applyTorqueAroundAxis(new Vector3f(0, 0, 1), aroundZ);
     }
 
     @Override
     public void applyTorqueAroundAxis(Vector3f axis, float amount) {
-        globalTorqueMatrix.rotate(amount, axis);
+        angularVelocity.add(axis.normalize().mul(amount));
+    }
+
+    @Override
+    public void applyTorqueAroundLocalAxis(Vector3f axis, float amount) {
+        Vector3f globalAxis = new Vector3f(
+                new Vector3f(transform.getRight()).mul(axis.x)
+                        .add(new Vector3f(transform.getUp()).mul(axis.y))
+                        .add(new Vector3f(transform.getFront()).mul(axis.z))
+        );
+        applyTorqueAroundAxis(globalAxis.normalize(), amount);
     }
 
     // returns a delta velocity which is gained because of the force
-    private Vector3f consumeLastForce(float deltaT) {
-        if(lastForce.lengthSquared() == 0) return new Vector3f(velocity).mul(deltaT);
+    private void consumeLastForce(float deltaT) {
+        Vector3f deltaX;
+        if(lastForce.length() > 0.001f) {
+            Vector3f deltaV = new Vector3f(lastForce).div(mass).mul(deltaT);
+            lastForce.set(0);
+            velocity.add(deltaV);
+        } else if(angularVelocity.length() < 0.001f) return;
 
-        Vector3f deltaV = new Vector3f(lastForce).div(mass).mul(deltaT);
-        lastForce.set(0);
-        velocity.add(deltaV);
-        return new Vector3f(velocity).mul(deltaT);
+        deltaX = new Vector3f(velocity).mul(deltaT);
+
+        transform.translateGlobal(deltaX);
+        velocity.mul(1-deltaT*drag);
+        if(velocity.length() < 0.001f) velocity.set(0);
     }
 
     private void consumeGlobalTorque(float deltaT) {
-        if(globalTorqueMatrix.equals(new Matrix4f().identity(), 0.0001f)) return;
+        if(angularVelocity.length() < 0.001f) return;
 
-        globalTorqueMatrix.scale(deltaT * globalAngularSensitivity);
-        transform.applyRotationMatrix4f(globalTorqueMatrix);
-        globalTorqueMatrix.identity();
+        float angle = angularVelocity.length() * deltaT * angularSensitivity;
+        transform.rotate(new Vector3f(angularVelocity).normalize(), angle);
+        angularVelocity.mul(1 - deltaT*angularDrag);
+        if(angularVelocity.length() < 0.001f) angularVelocity.set(0);
     }
 
     public float getMass() {
@@ -105,8 +127,7 @@ public class PhysicalObject implements Forceable, Updateable {
 
     @Override
     public void update(float deltaT) {
-        Vector3f deltaX = consumeLastForce(deltaT);
-        transform.translateGlobal(deltaX);
+        consumeLastForce(deltaT);
         consumeGlobalTorque(deltaT);
     }
 }

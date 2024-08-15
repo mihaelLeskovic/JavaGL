@@ -23,6 +23,7 @@ import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.*;
 
+import javax.swing.*;
 import java.nio.*;
 import java.time.Duration;
 import java.time.Instant;
@@ -76,15 +77,18 @@ public class SimulationProgram implements Runnable{
 
         init();
         loop();
+        cleanup();
+    }
 
+    private void cleanup() {
         for(Cleanable cleanable : cleanables) {
             cleanable.cleanup();
         }
 
         glfwFreeCallbacks(window);
         glfwDestroyWindow(window);
-        glfwTerminate();
-        glfwSetErrorCallback(null).free();
+//        glfwTerminate();
+//        glfwSetErrorCallback(null).free();
 
         main.switchToSwing();
     }
@@ -256,7 +260,6 @@ public class SimulationProgram implements Runnable{
                         .setySens(ySens)
                         .setxSens(xSens)
                         .setMoveSpeed(50f)
-                        .addTestThings(testCube, terrainObjects)
         );
         inputManagers.add(new StateControlsInputManager());
 

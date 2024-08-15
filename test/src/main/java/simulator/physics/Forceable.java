@@ -12,4 +12,5 @@ public interface Forceable {
     void applyGlobalTorque(float aroundX, float aroundY, float aroundZ);
 
     void applyTorqueAroundAxis(Vector3f axis, float amount);
+    void applyTorqueAroundLocalAxis(Vector3f axis, float amount);
 }

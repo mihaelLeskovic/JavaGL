@@ -46,6 +46,8 @@ public class Transform {
     }
 
     private void updateMatrices() {
+        normalizeVectors();
+
         Matrix4f rotationMatrix = new Matrix4f(
                 right.x, up.x, front.x, 0,
                 right.y, up.y, front.y, 0,

@@ -13,9 +13,6 @@ public class TestPhysicalCamera implements InputManager{
     private double xSens, ySens;
     private float moveSpeed;
     private PhysicalObject physicalObject;
-    private ObjectInstance testedMovable;
-    private List<TerrainObject> terrainObjects;
-    private float testedMovableDistance;
     private boolean firstMouse = true;
     private boolean lockMouse;
     private boolean shouldToggleLock = false;
@@ -72,14 +69,6 @@ public class TestPhysicalCamera implements InputManager{
         return height/2;
     }
 
-    public TestPhysicalCamera addTestThings(ObjectInstance testedMovable, List<TerrainObject> terrainObjects) {
-        this.terrainObjects = terrainObjects;
-        this.testedMovable = testedMovable;
-        this.testedMovableDistance = 1f;
-
-        return this;
-    }
-
     @Override
     public void procesInputDeltaT(long window, float deltaT) {
 
@@ -87,19 +76,19 @@ public class TestPhysicalCamera implements InputManager{
             physicalObject.applyForceLocal(new Vector3f(0, 0, -moveSpeed));
         }
         if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-            physicalObject.applyForce(new Vector3f(physicalObject.getTransform().getFront()).mul(-moveSpeed));
+            physicalObject.applyForceLocal(new Vector3f(0, 0, moveSpeed));
         }
         if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-            physicalObject.applyForce(new Vector3f(physicalObject.getTransform().getRight()).mul(-moveSpeed));
+            physicalObject.applyForceLocal(new Vector3f(-moveSpeed, 0, 0));
         }
         if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-            physicalObject.applyForce(new Vector3f(physicalObject.getTransform().getRight()).mul(moveSpeed));
+            physicalObject.applyForceLocal(new Vector3f(moveSpeed, 0, 0));
         }
         if(glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-            physicalObject.applyForce(new Vector3f(0, 1, 0).mul(moveSpeed));
+            physicalObject.applyForceLocal(new Vector3f(0, moveSpeed, 0));
         }
         if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
-            physicalObject.applyForce(new Vector3f(0, -1, 0).mul(moveSpeed));
+            physicalObject.applyForceLocal(new Vector3f(0, -moveSpeed, 0));
         }
         if(glfwGetKey(window, GLFW_KEY_I) == GLFW_RELEASE) {
             if(shouldToggleLock) {
@@ -115,29 +104,6 @@ public class TestPhysicalCamera implements InputManager{
         }
 
         processMouse(window, deltaT);
-
-        testedMovableProcedure(window, deltaT);
-    }
-
-    private void testedMovableProcedure(long window, float deltaT) {
-        if(testedMovable == null || terrainObjects == null) return;
-
-        if(glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS) {
-            testedMovableDistance += 1*deltaT;
-        }
-        if(glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) {
-            testedMovableDistance -= 1*deltaT;
-        }
-
-        testedMovable.setPosition(new Vector3f(physicalObject.getTransform().getPosition()).add(new Vector3f(physicalObject.getTransform().getFront()).mul(testedMovableDistance)));
-        for(TerrainObject to : terrainObjects) {
-            if(to.isAbovePoint(testedMovable.getPosition())) {
-                testedMovable.setColor(1, 0, 0);
-                break;
-            } else {
-                testedMovable.setColor(0, 1, 0);
-            }
-        }
     }
 
     private void processMouse(long window, float deltaT) {
@@ -160,12 +126,15 @@ public class TestPhysicalCamera implements InputManager{
         xoffset *= xSens;
         yoffset *= ySens;
 
-        if (xoffset != 0) {
-            physicalObject.getTransform().rotate(new Vector3f(0, 1, 0), (float) Math.toRadians(-xoffset));
+        if (xoffset*xoffset > 0.0001f) {
+//            physicalObject.getTransform().rotate(new Vector3f(0, 1, 0), (float) Math.toRadians(-xoffset));
+            physicalObject.applyTorqueAroundAxis(new Vector3f(0, 1, 0), (float) Math.toRadians(-xoffset));
         }
 
-        if (yoffset != 0) {
-            physicalObject.getTransform().rotate(physicalObject.getTransform().getRight(), (float) Math.toRadians(-yoffset));
+        if (yoffset*yoffset > 0.0001f) {
+//            physicalObject.getTransform().rotate(physicalObject.getTransform().getRight(), (float) Math.toRadians(-yoffset));
+//            physicalObject.applyTorqueAroundAxis(new Vector3f(physicalObject.getTransform().getRight()), (float) Math.toRadians(-xoffset));
+            physicalObject.applyTorqueAroundLocalAxis(new Vector3f(1, 0, 0), (float) Math.toRadians(-yoffset));
         }
 
         if (Math.abs(xpos - getCenterX()) > width / 4 || Math.abs(ypos - getCenterY()) > height / 4) {
