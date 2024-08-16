@@ -2,9 +2,8 @@ package simulator;
 
 import simulator.input.InputManager;
 import simulator.input.StateControlsInputManager;
-import simulator.input.TestCameraInputManager;
 import simulator.input.TestPhysicalCamera;
-import simulator.physics.PhysicalObject;
+import simulator.physics.*;
 import simulator.drawables.DrawableFactory;
 import simulator.drawables.RenderableFactory;
 import simulator.drawables.TerrainObject;
@@ -22,8 +21,8 @@ import org.lwjgl.Version;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.*;
+import simulator.utility.Cleanable;
 
-import javax.swing.*;
 import java.nio.*;
 import java.time.Duration;
 import java.time.Instant;
@@ -65,6 +64,7 @@ public class SimulationProgram implements Runnable{
     PhysicalObject testPhysicalObject;
     List<Cleanable> cleanables;
     PhysicalObject cameraPhysicalObject;
+    List<HitboxVisitor> hitboxVisitors;
 
     public SimulationProgram(String[] args, WindowSwitchListener main) {
         this.args = args;
@@ -112,6 +112,7 @@ public class SimulationProgram implements Runnable{
         uniformManager = new UniformManager();
         cleanables = new ArrayList<>();
         terrainObjects = new ArrayList<>();
+        hitboxVisitors = new ArrayList<>();
 
         GLFWErrorCallback.createPrint(System.err).set();
 
@@ -268,6 +269,22 @@ public class SimulationProgram implements Runnable{
 
         double greatestHeight = terrainObjects.stream().mapToDouble(TerrainObject::getMaxHeight).max().getAsDouble();
         terrainObjects.stream().forEach(terrainObject -> terrainObject.setMaxHeight((float)greatestHeight));
+
+        camera.translateGlobal(0, 30, 0);
+        WheelHitbox hitbox = new WheelHitbox(
+                DrawableFactory.makeSimpleTriangleMesh("C:\\Users\\dews\\Documents\\GitHub\\JavaGL\\test\\src\\main\\resources\\models\\kocka.obj"),
+                shader,
+                uniformManager,
+                camera
+//                ,new SimulationEndListener() {
+//                    @Override
+//                    public void endSimulation() {
+//                        glfwSetWindowShouldClose(window, true);
+//                    }
+//                }
+        );
+        hitbox.setShouldRender(false);
+        hitboxVisitors.add(hitbox);
     }
 
     private void loop() {
@@ -276,16 +293,6 @@ public class SimulationProgram implements Runnable{
 
         lastTime = Instant.now();
 
-//        testCube.setScale(1,1,1);
-
-        // HEIGHTMAP TESTING
-        /*
-        int i=10; int j=10;
-        Vector3f positionOfCube = terrainObject.getOrigin();
-        float cubeMoveTimer = 0;
-         /**/
-
-//        testPhysicalObject.setVelocity(new Vector3f(5, 10, 0));
 
         while (!glfwWindowShouldClose(window)) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -294,12 +301,6 @@ public class SimulationProgram implements Runnable{
 
             float deltaT = Duration.between(lastTime, Instant.now()).toMillis() * 0.001f;
             lastTime = Instant.now();
-
-//            model.rotate((float) 0.5f * deltaT, 0.0f, 1f, 0.0f);
-//            model.get(modelBuffer);
-
-//            testPhysicalObject.applyAcceleration(new Vector3f(0, -9.81f, 0));
-//            testPhysicalObject.update(deltaT);
 
             objectInstances.get(0).rotate(new Vector3f(0, 1, 0), 0.5f * deltaT);
 //            objectInstances.get(0).translateLocal(new Vector3f(0, 0, 1).mul(0.5f*deltaT))
@@ -314,38 +315,9 @@ public class SimulationProgram implements Runnable{
 
             if(cameraPhysicalObject!=null) cameraPhysicalObject.update(deltaT);
 
-            // HEIGHTMAP TESTING
-            /*
-            cubeMoveTimer += deltaT;
-            if(cubeMoveTimer > 1) {
-                cubeMoveTimer = 0;
-                float x = (i) * terrainObject.getDivisionSpan();
-                float z = (j) * terrainObject.getDivisionSpan();
-                float addX = (float) (Math.random() * terrainObject.getDivisionSpan());
-                float addZ = (float) (Math.random() * terrainObject.getDivisionSpan());
-                positionOfCube = terrainObject.getOrigin();
-                positionOfCube.add(
-                        x + addX,
-                        0,
-                        z + addZ
-                );
-                positionOfCube.y = terrainObject.getHeightAt(positionOfCube);
-                positionOfCube.add(new Vector3f(
-                        0,
-                        0,
-                        0
-                ));
-                j++;
-                System.out.println("i:"+i + " j:"+j);
-                if(j>=30) {
-                    j=0;
-                    i++;
-                }
+            for(TerrainObject terrainObject : terrainObjects) {
+                //TODO
             }
-
-            camera.setPosition(positionOfCube.add(camera.getFront().mul(-2, new Vector3f()), new Vector3f()));
-            testCube.setPosition(positionOfCube);
-            /**/
 
             testCube.render(camera, light);
 

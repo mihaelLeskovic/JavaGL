@@ -1,6 +1,8 @@
 package simulator.drawables;
 
-import simulator.Cleanable;
+import simulator.utility.Cleanable;
+import simulator.physics.HitboxVisitor;
+import simulator.physics.VisitableHitbox;
 import simulator.shaders.UniformManager;
 import simulator.shaders.Shader;
 import simulator.transforms.Camera;
@@ -9,10 +11,9 @@ import simulator.transforms.Renderable;
 import simulator.transforms.Transform;
 import org.joml.Vector3f;
 
-import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 
-public class TerrainObject extends Transform implements Renderable, Cleanable{
+public class TerrainObject extends Transform implements Renderable, Cleanable, VisitableHitbox {
     TerrainMesh terrainMesh;
     Shader shader;
     UniformManager uniformManager;
@@ -70,50 +71,35 @@ public class TerrainObject extends Transform implements Renderable, Cleanable{
     }
 
     public float getHeightAt(Vector3f point) {
-        float center = this.getSpan() / 2;
+        Vector3f localPoint = new Vector3f(point).sub(this.getPosition());
+        if (!pointIsInXZArea(localPoint)) return 0; // Return ground level instead of Float.MIN_VALUE
+
+        float halfSpan = this.getSpan() / 2;
         float divisionSpan = this.getDivisionSpan();
 
-        // Adjust the point coordinates to match the terrain's coordinate system
-        float adjustedX = point.x + center;
-        float adjustedZ = point.z + center;
+        float adjustedX = localPoint.x + halfSpan;
+        float adjustedZ = localPoint.z + halfSpan;
 
-        int i = (int) Math.floor(adjustedX / divisionSpan);
-        int j = (int) Math.floor(adjustedZ / divisionSpan);
-
-        if (i < 0 || i >= this.getHeightMap().length - 1 || j < 0 || j >= this.getHeightMap()[0].length - 1) {
-            return -10;
-        }
+        int i = Math.max(0, Math.min((int) (adjustedX / divisionSpan), this.getHeightMap().length - 2));
+        int j = Math.max(0, Math.min((int) (adjustedZ / divisionSpan), this.getHeightMap()[0].length - 2));
 
         float xLocal = (adjustedX / divisionSpan) - i;
         float zLocal = (adjustedZ / divisionSpan) - j;
 
-        boolean isLowerTriangle = (xLocal + zLocal <= 1);
+        float h00 = this.getHeightMap()[i][j];
+        float h10 = this.getHeightMap()[i+1][j];
+        float h01 = this.getHeightMap()[i][j+1];
+        float h11 = this.getHeightMap()[i+1][j+1];
 
-        float y1, y2, y3;
-        float weight1, weight2, weight3;
+        float h0 = h00 * (1 - xLocal) + h10 * xLocal;
+        float h1 = h01 * (1 - xLocal) + h11 * xLocal;
 
-        if (isLowerTriangle) {
-            y1 = this.getHeightMap()[i][j];
-            y2 = this.getHeightMap()[i+1][j];
-            y3 = this.getHeightMap()[i][j+1];
-
-            weight1 = 1 - xLocal - zLocal;
-            weight2 = xLocal;
-            weight3 = zLocal;
-        } else {
-            y1 = this.getHeightMap()[i+1][j+1];
-            y2 = this.getHeightMap()[i][j+1];
-            y3 = this.getHeightMap()[i+1][j];
-
-            weight1 = xLocal + zLocal - 1;
-            weight2 = 1 - xLocal;
-            weight3 = 1 - zLocal;
-        }
-
-        return y1 * weight1 + y2 * weight2 + y3 * weight3;
+        return h0 * (1 - zLocal) + h1 * zLocal;
     }
 
     public boolean isAbovePoint(Vector3f point) {
+        if(!pointIsInXZArea(point.sub(this.getPosition()))) return false;
+
         float center = this.getSpan() / 2;
         float divisionSpan = this.getDivisionSpan();
 
@@ -158,7 +144,14 @@ public class TerrainObject extends Transform implements Renderable, Cleanable{
     public boolean pointIsCloseEnough(Vector3f point) {
         Vector3f min = new Vector3f(this.getPosition()).sub(this.getSpan()/2, this.getPosition().y, this.getSpan()/2);
         Vector3f max = new Vector3f(this.getPosition()).add(this.getSpan()/2, this.getMaxHeight(), this.getSpan()/2);
-        return min.x < point.x && min.z < point.z && min.y < point.y && point.y < max.y && point.x < max.x && point.z < max.z;
+        return min.x < point.x && min.z < point.z && point.y < max.y && point.x < max.x && point.z < max.z;
+    }
+
+    //local coords
+    public boolean pointIsInXZArea(Vector3f point) {
+        float halfSpan = this.getSpan() / 2;
+        return point.x >= -halfSpan && point.x <= halfSpan &&
+                point.z >= -halfSpan && point.z <= halfSpan;
     }
 
     @Override
@@ -170,5 +163,10 @@ public class TerrainObject extends Transform implements Renderable, Cleanable{
     @Override
     public boolean isCleaned() {
         return false;
+    }
+
+    @Override
+    public void accept(HitboxVisitor visitor) {
+        visitor.visitTerrain(this);
     }
 }

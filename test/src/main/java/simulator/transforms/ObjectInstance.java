@@ -1,6 +1,6 @@
 package simulator.transforms;
 
-import simulator.Cleanable;
+import simulator.utility.Cleanable;
 import simulator.shaders.UniformManager;
 import simulator.drawables.Drawable;
 import simulator.shaders.Shader;

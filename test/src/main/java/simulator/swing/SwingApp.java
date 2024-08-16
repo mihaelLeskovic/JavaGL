@@ -1,13 +1,17 @@
 package simulator.swing;
 
+import simulator.Main;
+
 import javax.swing.*;
 
-public class SwingApp implements Runnable, WindowSwitchListener{
-    WindowSwitchListener main;
+public class SwingApp implements Runnable, WindowSwitchListener, AppCloseListener{
+    WindowSwitchListener windowSwitchListener;
+    AppCloseListener appCloseListener;
     JFrame menuFrame;
 
-    public SwingApp(String[] args, WindowSwitchListener main) {
-        this.main = main;
+    public SwingApp(String[] args, Main main) {
+        this.windowSwitchListener = main;
+        this.appCloseListener = main;
     }
 
     @Override
@@ -19,14 +23,20 @@ public class SwingApp implements Runnable, WindowSwitchListener{
     public void switchToSimulation() {
         menuFrame.setVisible(false);
 
-        main.switchToSimulation();
+        windowSwitchListener.switchToSimulation();
     }
 
     @Override
     public void run() {
+        SwingUtilities.invokeLater(()->{
+            menuFrame = new MenuFrame(this, this);
+            menuFrame.setVisible(true);
+        });
+    }
 
-        menuFrame = new MenuFrame(this);
-        menuFrame.setVisible(true);
-
+    @Override
+    public void onClose() {
+        menuFrame.dispose();
+        appCloseListener.onClose();
     }
 }

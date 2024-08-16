@@ -1,4 +1,4 @@
-package simulator;
+package simulator.utility;
 
 public interface Cleanable {
     void cleanup();

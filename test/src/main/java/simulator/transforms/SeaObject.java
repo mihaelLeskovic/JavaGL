@@ -1,6 +1,8 @@
 package simulator.transforms;
 
-import simulator.Cleanable;
+import simulator.utility.Cleanable;
+import simulator.physics.HitboxVisitor;
+import simulator.physics.VisitableHitbox;
 import simulator.shaders.UniformManager;
 import simulator.drawables.SeaMesh;
 import simulator.shaders.Shader;
@@ -8,7 +10,7 @@ import simulator.shaders.Shader;
 import static org.lwjgl.glfw.GLFW.glfwGetTime;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 
-public class SeaObject extends Transform implements Renderable, Cleanable {
+public class SeaObject extends Transform implements Renderable, Cleanable, VisitableHitbox {
     SeaMesh seaMesh;
     Shader shader;
     UniformManager uniformManager;
@@ -60,5 +62,10 @@ public class SeaObject extends Transform implements Renderable, Cleanable {
     @Override
     public boolean isCleaned() {
         return false;
+    }
+
+    @Override
+    public void accept(HitboxVisitor visitor) {
+        visitor.visitSea(this);
     }
 }

@@ -1,6 +1,6 @@
 package simulator.drawables;
 
-import simulator.Cleanable;
+import simulator.utility.Cleanable;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15C.glDeleteBuffers;

@@ -166,6 +166,10 @@ public class Transform {
         return this;
     }
 
+    public Transform translateGlobal(float x, float y, float z) {
+        return translateGlobal(new Vector3f(x,y,z));
+    }
+
     public Transform translateGlobal(Vector3f translation) {
         position.add(translation);
         updateMatrices();

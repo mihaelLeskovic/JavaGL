@@ -4,6 +4,9 @@ import org.joml.Matrix4f;
 import simulator.transforms.*;
 import org.joml.Vector3f;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class PhysicalObject implements Forceable, Updateable {
 
     //in kg
@@ -23,24 +26,18 @@ public class PhysicalObject implements Forceable, Updateable {
 
     Vector3f lastForce;
     Transform transform;
-    CollisionOverseer collisionOverseer;
-    //TODO collision overseer stuff
+
 
     public Transform getTransform() {
         return transform;
     }
 
-    public PhysicalObject(float mass, Transform transform, CollisionOverseer collisionOverseer) {
+    public PhysicalObject(float mass, Transform transform) {
         this.mass = mass;
         this.transform = transform;
         this.velocity = new Vector3f(0);
         this.lastForce = new Vector3f(0);
         this.angularVelocity = new Vector3f(0);
-        this.collisionOverseer = collisionOverseer;
-    }
-
-    public PhysicalObject(float mass, Transform transform) {
-        this(mass, transform, null);
     }
 
     public void setAngularSensitivity(float angularSensitivity) {

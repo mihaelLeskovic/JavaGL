@@ -1,57 +1,63 @@
 package simulator;
 
+import simulator.swing.AppCloseListener;
 import simulator.swing.SwingApp;
 import simulator.swing.WindowSwitchListener;
 
-import javax.swing.*;
-
-import static org.lwjgl.glfw.GLFW.glfwInit;
-import static org.lwjgl.glfw.GLFW.glfwTerminate;
-
-public class Main implements WindowSwitchListener {
+public class Main implements WindowSwitchListener, AppCloseListener {
     String[] args;
-    Runnable activeRunnable;
     SwingApp swingApp;
     SimulationProgram simulationProgram;
     boolean shouldOpenSim = false;
+    boolean shouldClose = false;
 
     public Main(String[] args) {
         this.args = args;
         this.swingApp = new SwingApp(args, this);
         this.simulationProgram = new SimulationProgram(args, this);
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            glfwTerminate();
-        }));
     }
 
     public static void main(String[] args) throws InterruptedException {
         Main main = new Main(args);
         main.run();
-        while(true) {
-            if(main.shouldOpenSim) {
-                main.simulationProgram.run();
-                main.shouldOpenSim = false;
-            }
-            Thread.sleep(200);
-        }
     }
 
-    public void run() {
-
+    public void run() throws InterruptedException {
         swingApp.run();
+
+        synchronized (this) {
+            while(true) {
+                if(!shouldOpenSim) {
+                    wait();
+                }
+
+                if(shouldClose) break;
+
+                simulationProgram = new SimulationProgram(args, this);
+                simulationProgram.run();
+                shouldOpenSim = false;
+            }
+        }
     }
 
     @Override
     public void switchToSwing() {
-
         swingApp.switchToSwing();
-
     }
 
     @Override
     public void switchToSimulation() {
+        synchronized (this) {
+            shouldOpenSim = true;
+            notify();
+        }
+    }
 
-        this.shouldOpenSim = true;
+    @Override
+    public void onClose() {
+        synchronized (this) {
+            shouldClose = true;
+            notify();
+        }
     }
 }

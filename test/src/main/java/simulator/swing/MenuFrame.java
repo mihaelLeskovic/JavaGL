@@ -6,10 +6,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class MenuFrame extends JFrame {
-    WindowSwitchListener listener;
+    WindowSwitchListener windowSwitchListener;
+    AppCloseListener appCloseListener;
 
-    public MenuFrame(WindowSwitchListener listener) {
-        this.listener = listener;
+    public MenuFrame(WindowSwitchListener windowSwitchListener, AppCloseListener appCloseListener) {
+        this.windowSwitchListener = windowSwitchListener;
+        this.appCloseListener = appCloseListener;
 
 //        setTitle("Simulation Main Menu");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -19,33 +21,35 @@ public class MenuFrame extends JFrame {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
 
-        // Logo
         ImageIcon logoIcon = new ImageIcon("path/to/your/logo.png");
         JLabel logoLabel = new JLabel(logoIcon);
         logoLabel.setHorizontalAlignment(JLabel.CENTER);
         mainPanel.add(logoLabel, BorderLayout.NORTH);
 
-        // Buttons panel
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
 
-        // Start Simulation button
         JButton startButton = new JButton("Start Simulation");
         startButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         startButton.setFont(new Font("Arial", Font.BOLD, 18));
-        startButton.setMaximumSize(new Dimension(200, 50));
+        startButton.setMaximumSize(new Dimension(200, 100));
         startButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                listener.switchToSimulation();
+                windowSwitchListener.switchToSimulation();
             }
         });
 
-        // Options button
-        JButton optionsButton = new JButton("Options");
+        JButton optionsButton = new JButton("Close program");
         optionsButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         optionsButton.setFont(new Font("Arial", Font.PLAIN, 14));
-        optionsButton.setMaximumSize(new Dimension(100, 30));
+        optionsButton.setMaximumSize(new Dimension(150, 30));
+        optionsButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                appCloseListener.onClose();
+            }
+        });
 
         buttonPanel.add(Box.createVerticalGlue());
         buttonPanel.add(startButton);
