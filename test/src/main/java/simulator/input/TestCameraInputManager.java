@@ -102,7 +102,7 @@ public class TestCameraInputManager implements InputManager{
         if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) {
             movable.translateLocal(new Vector3f(0, -1, 0).mul(deltaT * moveSpeed));
         }
-        if(glfwGetKey(window, GLFW_KEY_I) == GLFW_RELEASE) {
+        if(glfwGetKey(window, GLFW_KEY_V) == GLFW_RELEASE) {
             if(shouldToggleLock) {
                 if(!lockMouse) {
                     glfwSetCursorPos(window, getCenterX(), getCenterY());
@@ -111,7 +111,7 @@ public class TestCameraInputManager implements InputManager{
             }
             shouldToggleLock = false;
         }
-        if(glfwGetKey(window, GLFW_KEY_I) == GLFW_PRESS) {
+        if(glfwGetKey(window, GLFW_KEY_V) == GLFW_PRESS) {
             shouldToggleLock = true;
         }
 

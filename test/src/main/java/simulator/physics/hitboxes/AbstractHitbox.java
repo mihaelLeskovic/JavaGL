@@ -1,8 +1,9 @@
-package simulator.physics;
+package simulator.physics.hitboxes;
 
 import org.joml.Vector3f;
 import simulator.drawables.Drawable;
 import simulator.drawables.TerrainObject;
+import simulator.physics.Plane;
 import simulator.shaders.Shader;
 import simulator.shaders.UniformManager;
 import simulator.transforms.*;
@@ -11,28 +12,54 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class AbstractHitbox extends ObjectInstance implements HitboxVisitor {
-    Transform owner;
+    Plane owner;
     Vector3f offset;
 
     List<Vector3f> boundingPoints;
     boolean pointsAreUpToDate = false;
     boolean shouldRender = false;
+    boolean isGrounded = false;
+    float groundedTolerance = 0.2f;
 
     public AbstractHitbox setOffset(float x, float y, float z) {
         return setOffset(new Vector3f(x,y,z));
     }
 
+    public void expand(Vector3f expandVector) {
+        offset.add(expandVector);
+        getScale().add(expandVector.absolute());
+    }
+
+    public void shrink(Vector3f shrinkVector) {
+        offset.sub(shrinkVector);
+        getScale().sub(shrinkVector.absolute());
+    }
+
+    public void moveOffset(Vector3f move) {
+        offset.add(move);
+    }
+
     public AbstractHitbox setOffset(Vector3f offset) {
         this.offset = offset;
-        setPosition(offset.add(this.owner.getPosition()));
+        setPosition(offset.add(this.owner.getTransform().getPosition()));
         return this;
     }
 
-    public AbstractHitbox(Drawable drawable, Shader shader, UniformManager uniformManager, Transform owner) {
+    public AbstractHitbox(Drawable drawable, Shader shader, UniformManager uniformManager, Plane owner) {
         super(drawable, shader, uniformManager);
         this.owner = owner;
         this.offset = new Vector3f(0);
-        setPosition(owner.getPosition());
+        setPosition(owner.getTransform().getPosition());
+    }
+
+    @Override
+    public void notifyCollisionListeners() {
+        owner.notifyCollision();
+    }
+
+    @Override
+    public boolean isGrounded() {
+        return isGrounded;
     }
 
     @Override
@@ -73,11 +100,18 @@ public abstract class AbstractHitbox extends ObjectInstance implements HitboxVis
 
         float maxDiff = Float.MIN_VALUE;
         boolean hasCollided = false;
+        boolean groundedInThisRun = false;
 
         for (Vector3f boundingPoint : boundingPoints) {
             if(!terrainObject.pointIsCloseEnough(boundingPoint)) continue;
 
             float heightAtPoint = terrainObject.getHeightAt(boundingPoint);
+
+            if(heightAtPoint > boundingPoint.y - groundedTolerance) {
+                groundedInThisRun = true;
+                isGrounded = true;
+            }
+
             if (heightAtPoint > boundingPoint.y) {
                 hasCollided = true;
                 float diff = heightAtPoint - boundingPoint.y;
@@ -85,8 +119,11 @@ public abstract class AbstractHitbox extends ObjectInstance implements HitboxVis
             }
         }
 
+        if(!groundedInThisRun) isGrounded = false;
+
         if(!hasCollided) return;
         onCollisionTerrain(new Vector3f(0, maxDiff, 0));
+        notifyCollisionListeners();
     }
 
     @Override
@@ -108,13 +145,14 @@ public abstract class AbstractHitbox extends ObjectInstance implements HitboxVis
 
         if(!hasCollided) return;
         onCollisionTerrain(new Vector3f(0, maxDiff, 0));
+        notifyCollisionListeners();
     }
 
     @Override
     public void update(float deltaT) {
         this.pointsAreUpToDate = false;
-        setPosition(new Vector3f(this.offset).add(owner.getPosition()));
-        setLookDirection(owner.getFront(), owner.getUp());
+        setPosition(new Vector3f(this.offset).add(owner.getTransform().getPosition()));
+        setLookDirection(owner.getTransform().getFront(), owner.getTransform().getUp());
 
         updateBoundingPoints();
     }
@@ -122,6 +160,7 @@ public abstract class AbstractHitbox extends ObjectInstance implements HitboxVis
     @Override
     public void render(Camera camera, Light light) {
         if(!shouldRender) return;
+        if(this.getDrawable()==null) return;
         super.render(camera, light);
     }
 }

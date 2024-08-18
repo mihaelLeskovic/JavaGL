@@ -7,14 +7,13 @@ import simulator.swing.WindowSwitchListener;
 public class Main implements WindowSwitchListener, AppCloseListener {
     String[] args;
     SwingApp swingApp;
-    SimulationProgram simulationProgram;
+    Runnable simulationProgram;
     boolean shouldOpenSim = false;
     boolean shouldClose = false;
 
     public Main(String[] args) {
         this.args = args;
         this.swingApp = new SwingApp(args, this);
-        this.simulationProgram = new SimulationProgram(args, this);
     }
 
     public static void main(String[] args) throws InterruptedException {
@@ -33,7 +32,7 @@ public class Main implements WindowSwitchListener, AppCloseListener {
 
                 if(shouldClose) break;
 
-                simulationProgram = new SimulationProgram(args, this);
+                simulationProgram = new FinalSimulationProgram(args, this);
                 simulationProgram.run();
                 shouldOpenSim = false;
             }

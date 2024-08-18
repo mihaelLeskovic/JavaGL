@@ -1,15 +1,16 @@
-package simulator.physics;
+package simulator.physics.hitboxes;
 
 import org.joml.Vector3f;
 import simulator.drawables.Drawable;
+import simulator.physics.Plane;
+import simulator.physics.SimulationEndListener;
 import simulator.shaders.Shader;
 import simulator.shaders.UniformManager;
-import simulator.transforms.Transform;
 
 public class PlaneHitbox extends AbstractHitbox{
     SimulationEndListener simulationEndListener;
 
-    public PlaneHitbox(Drawable drawable, Shader shader, UniformManager uniformManager, Transform owner, SimulationEndListener simulationEndListener) {
+    public PlaneHitbox(Drawable drawable, Shader shader, UniformManager uniformManager, Plane owner, SimulationEndListener simulationEndListener) {
         super(drawable, shader, uniformManager, owner);
         this.simulationEndListener = simulationEndListener;
     }

@@ -7,7 +7,8 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PhysicalObject implements Forceable, Updateable {
+public class PhysicalObject implements Forceable, Updateable, CollisionEventListener {
+    static final float GRAVITY = 9.81f;
 
     //in kg
     float mass;
@@ -103,6 +104,7 @@ public class PhysicalObject implements Forceable, Updateable {
 
     private void consumeGlobalTorque(float deltaT) {
         if(angularVelocity.length() < 0.001f) return;
+//        angularVelocity.y *= -1;
 
         float angle = angularVelocity.length() * deltaT * angularSensitivity;
         transform.rotate(new Vector3f(angularVelocity).normalize(), angle);
@@ -126,5 +128,14 @@ public class PhysicalObject implements Forceable, Updateable {
     public void update(float deltaT) {
         consumeLastForce(deltaT);
         consumeGlobalTorque(deltaT);
+    }
+
+    @Override
+    public void notifyCollision() {
+        velocity.y = velocity.y > 0 ? velocity.y : 0;
+        transform.setLookDirection(
+                velocity.length() > 0.1 ? new Vector3f(velocity).normalize() : transform.getFront(),
+                transform.getUp()
+        );
     }
 }

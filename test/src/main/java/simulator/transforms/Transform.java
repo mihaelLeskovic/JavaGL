@@ -11,7 +11,6 @@ public class Transform {
     private Vector3f up;
     private Vector3f right;
     private Vector3f scale;
-    private Matrix4f adjustmentMatrix;
     private Matrix4f modelMatrix;
     private Matrix4f viewMatrix;
 
@@ -23,27 +22,21 @@ public class Transform {
         scale = new Vector3f(1, 1, 1);
         modelMatrix = new Matrix4f();
         viewMatrix = new Matrix4f();
-        adjustmentMatrix = new Matrix4f().identity();
         updateMatrices();
     }
 
-    public Transform setAdjustmentMatrix(Matrix4f adjustmentMatrix) {
-        this.adjustmentMatrix = adjustmentMatrix;
-        return this;
-    }
-
-    private Vector3f applyAdjustment(Vector3f vec) {
-        Vector4f adjusted = (new Vector4f(vec, 1).mul(adjustmentMatrix));
-        return new Vector3f(vec.x, vec.y, vec.z);
-    }
+//    private Vector3f applyAdjustment(Vector3f vec) {
+//        Vector4f adjusted = (new Vector4f(vec, 1).mul(adjustmentMatrix));
+//        return new Vector3f(vec.x, vec.y, vec.z);
+//    }
 
     public Transform setScale(float universal) {
         return setScale(universal, universal, universal);
     }
 
-    private Matrix4f applyAdjustment(Matrix4f mat) {
-        return new Matrix4f(mat).mul(adjustmentMatrix);
-    }
+//    private Matrix4f applyAdjustment(Matrix4f mat) {
+//        return new Matrix4f(mat).mul(adjustmentMatrix);
+//    }
 
     private void updateMatrices() {
         normalizeVectors();
@@ -69,7 +62,8 @@ public class Transform {
 
         viewMatrix.identity()
                 .lookAt(position, target, up)
-                .scale(1/scale.x, 1/scale.y, 1/scale.z);
+//                .scale(1/scale.x, 1/scale.y, 1/scale.z);
+        ;
     }
 
     public Vector3f getPosition() {
@@ -77,7 +71,8 @@ public class Transform {
     }
 
     public Matrix4f getModelMatrix() {
-        return applyAdjustment(modelMatrix);
+        return modelMatrix;
+//        return applyAdjustment(modelMatrix);
     }
 
     public Matrix4f getViewMatrix() {
@@ -133,7 +128,7 @@ public class Transform {
     }
 
     public Transform setLookDirection(Vector3f lookAt, Vector3f upVector) {
-        front = lookAt;
+        front = new Vector3f(lookAt);
         right = front.cross(upVector, new Vector3f());
         up = right.cross(front, new Vector3f());
         normalizeVectors();
@@ -147,18 +142,8 @@ public class Transform {
         this.right.normalize();
     }
 
-    //TODO bilo bi zgodno imati ove funkcije
-//    public Transform setLookAt(float targetX, float targetY, float targetZ, float upX, float upY, float upZ) {
-//        return setLookAt(new Vector3f(targetX, targetY, targetZ), new Vector3f(upX, upY, upZ));
-//    }
-//
-//    public Transform setLookAt(Vector3f target, Vector3f upVector) {
-//        setLookDirection(target.sub(this.front).normalize(), upVector);
-//        return this;
-//    }
-
     public Transform translateLocal(Vector3f translation) {
-        translation = applyAdjustment(translation);
+//        translation = applyAdjustment(translation);
         position.add(front.mul(-translation.z, new Vector3f()))
                 .add(right.mul(translation.x, new Vector3f()))
                 .add(up.mul(translation.y, new Vector3f()));

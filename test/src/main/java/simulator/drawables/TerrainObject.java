@@ -1,8 +1,8 @@
 package simulator.drawables;
 
 import simulator.utility.Cleanable;
-import simulator.physics.HitboxVisitor;
-import simulator.physics.VisitableHitbox;
+import simulator.physics.hitboxes.HitboxVisitor;
+import simulator.physics.hitboxes.VisitableHitbox;
 import simulator.shaders.UniformManager;
 import simulator.shaders.Shader;
 import simulator.transforms.Camera;

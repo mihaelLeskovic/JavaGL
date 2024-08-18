@@ -9,13 +9,9 @@ import org.lwjgl.system.MemoryStack;
 import simulator.drawables.DrawableFactory;
 import simulator.drawables.RenderableFactory;
 import simulator.drawables.TerrainObject;
-import simulator.input.InputManager;
-import simulator.input.StateControlsInputManager;
-import simulator.input.TestCameraInputManager;
-import simulator.input.TestPhysicalCamera;
-import simulator.physics.PhysicalObject;
-import simulator.physics.Plane;
-import simulator.physics.Updateable;
+import simulator.input.*;
+import simulator.physics.*;
+import simulator.physics.hitboxes.PlaneHitbox;
 import simulator.shaders.Shader;
 import simulator.shaders.ShaderFactory;
 import simulator.shaders.UniformManager;
@@ -40,18 +36,18 @@ import static org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class SimulationProgram implements Runnable{
+public class FinalSimulationProgram implements Runnable{
     int width = 800;
     int height = 600;
     String[] args;
     WindowSwitchListener main;
     long window;
     List<Cleanable> cleanables = new ArrayList<>();;
-    HashMap<String, Consumer<SimulationProgram>> argParserMap;
+    HashMap<String, Consumer<FinalSimulationProgram>> argParserMap;
     boolean developerMode = false;
     boolean enableCulling = true;
 
-    public SimulationProgram(String[] args, WindowSwitchListener main) {
+    public FinalSimulationProgram(String[] args, WindowSwitchListener main) {
         this.args = args;
         this.main = main;
     }
@@ -72,7 +68,7 @@ public class SimulationProgram implements Runnable{
         argParserMap.put("-disableCulling", m -> m.enableCulling=false);
 
         for(int i=0; i<args.length; i++) {
-            Consumer<SimulationProgram> func = argParserMap.get(args[i]);
+            Consumer<FinalSimulationProgram> func = argParserMap.get(args[i]);
             if(func == null) continue;
             func.accept(this);
         }
@@ -152,8 +148,8 @@ public class SimulationProgram implements Runnable{
         //CAMERA
         Camera camera = new Camera();
         camera.setNstaySame(0.01f);
-        camera.setPosition(5.0f, 7f, 7.0f)
-                .rotate(new Vector3f(-1, 0, 0), 0.4f);
+//        camera.setPosition(5.0f, 7f, 7.0f)
+//                .rotate(new Vector3f(-1, 0, 0), 0.4f);
 
 
         //LIGHT
@@ -173,11 +169,43 @@ public class SimulationProgram implements Runnable{
         );
         renderables.add(planeInstance);
         cleanables.add(planeInstance);
-        Plane plane = new Plane(new PhysicalObject(
-                2000,
-                planeInstance),
-                null
+
+        planeInstance.setPosition(5, 5, 5);
+        Plane plane = new Plane(
+                new PhysicalObject(
+                    2000,
+                    planeInstance
+                ),
+                developerMode ? "src/main/resources/models/kocka.obj" :
+                        ""
         );
+        PlaneHitbox planeHitbox = new PlaneHitbox(
+                DrawableFactory.makeSimpleTriangleMesh(
+                        developerMode ? "src/main/resources/models/kocka.obj" :
+                                ""
+                ),
+                mainShader,
+                uniformManager,
+                plane,
+                new SimulationEndListener() {
+                    @Override
+                    public void endSimulation() {
+                        glfwWindowShouldClose(window);
+                    }
+                }
+        );
+        planeHitbox.setShouldRender(false);
+        renderables.add(planeHitbox);
+
+        plane.setPlaneFollower(
+                new PlaneFollower(
+                        camera
+                )
+                        .setOffset(new Vector3f(0,0.5f, -2f))
+        );
+
+        plane.addHitboxVisitor(planeHitbox);
+
         updateables.add(plane);
 
 
@@ -211,12 +239,21 @@ public class SimulationProgram implements Runnable{
 
         //INPUT MANAGERS
         inputManagers.add(new StateControlsInputManager());
-        PhysicalObject physicalCamera = new PhysicalObject(1, camera);
 
-        updateables.add(physicalCamera);
-        inputManagers.add(new TestPhysicalCamera(
-                window, width, height, physicalCamera, true
-        ));
+//        PhysicalObject physicalCamera = new PhysicalObject(1, camera);
+
+//        inputManagers.add(new TestCameraInputManager(
+//                window, width, height, camera, true
+//        ));
+
+        inputManagers.add(new PlaneKeyboardInputManager(plane));
+
+//        inputManagers.add(new HitboxManipulatorManager(planeHitbox));
+
+//        updateables.add(physicalCamera);
+//        inputManagers.add(new TestPhysicalCamera(
+//                window, width, height, physicalCamera, true
+//        ));
 
 
         while(!glfwWindowShouldClose(window)) {
@@ -252,8 +289,8 @@ public class SimulationProgram implements Runnable{
 
         glfwFreeCallbacks(window);
         glfwDestroyWindow(window);
-//        glfwTerminate();
-//        glfwSetErrorCallback(null).free();
+        glfwTerminate();
+        glfwSetErrorCallback(null).free();
 
         main.switchToSwing();
     }

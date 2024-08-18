@@ -22,6 +22,10 @@ public class ObjectInstance extends Transform implements Renderable, Cleanable {
         this.color = new Vector3f((float) Math.random(), (float) Math.random(), (float) Math.random());
     }
 
+    public Drawable getDrawable() {
+        return drawable;
+    }
+
     public Vector3f getColor() {
         return color;
     }
