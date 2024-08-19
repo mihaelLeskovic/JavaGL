@@ -29,6 +29,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Vector;
 import java.util.function.Consumer;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
@@ -173,11 +174,7 @@ public class SimulationProgram implements Runnable{
         );
         renderables.add(planeInstance);
         cleanables.add(planeInstance);
-        Plane plane = new Plane(new PhysicalObject(
-                2000,
-                planeInstance),
-                null
-        );
+        Plane plane = new Plane(planeInstance, 2000);
         updateables.add(plane);
 
 

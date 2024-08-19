@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PhysicalObject implements Forceable, Updateable, CollisionEventListener {
-    static final float GRAVITY = 9.81f;
+    static final float GRAVITY = 9.81f/2;
 
     //in kg
     float mass;
@@ -93,7 +93,7 @@ public class PhysicalObject implements Forceable, Updateable, CollisionEventList
             Vector3f deltaV = new Vector3f(lastForce).div(mass).mul(deltaT);
             lastForce.set(0);
             velocity.add(deltaV);
-        } else if(angularVelocity.length() < 0.001f) return;
+        } else if(velocity.length() < 0.001f) return;
 
         deltaX = new Vector3f(velocity).mul(deltaT);
 
@@ -107,7 +107,10 @@ public class PhysicalObject implements Forceable, Updateable, CollisionEventList
 //        angularVelocity.y *= -1;
 
         float angle = angularVelocity.length() * deltaT * angularSensitivity;
-        transform.rotate(new Vector3f(angularVelocity).normalize(), angle);
+        Vector3f normalizedAngVel = new Vector3f(angularVelocity).normalize();
+        transform.rotate(normalizedAngVel, angle);
+//        velocity.rotate(new Vector3f(angularVelocity).normalize(), angle);
+        velocity.rotateAxis(angle, normalizedAngVel.x, normalizedAngVel.y, normalizedAngVel.z);
         angularVelocity.mul(1 - deltaT*angularDrag);
         if(angularVelocity.length() < 0.001f) angularVelocity.set(0);
     }
@@ -126,8 +129,8 @@ public class PhysicalObject implements Forceable, Updateable, CollisionEventList
 
     @Override
     public void update(float deltaT) {
-        consumeLastForce(deltaT);
         consumeGlobalTorque(deltaT);
+        consumeLastForce(deltaT);
     }
 
     @Override

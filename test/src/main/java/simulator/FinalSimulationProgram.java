@@ -6,6 +6,7 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
+import simulator.drawables.Drawable;
 import simulator.drawables.DrawableFactory;
 import simulator.drawables.RenderableFactory;
 import simulator.drawables.TerrainObject;
@@ -25,6 +26,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
@@ -46,6 +48,8 @@ public class FinalSimulationProgram implements Runnable{
     HashMap<String, Consumer<FinalSimulationProgram>> argParserMap;
     boolean developerMode = false;
     boolean enableCulling = true;
+    boolean isTimeToEnd = false;
+    boolean enableFreecam = false;
 
     public FinalSimulationProgram(String[] args, WindowSwitchListener main) {
         this.args = args;
@@ -66,6 +70,7 @@ public class FinalSimulationProgram implements Runnable{
         argParserMap = new HashMap<>();
         argParserMap.put("-developerMode", m -> m.developerMode = true);
         argParserMap.put("-disableCulling", m -> m.enableCulling=false);
+        argParserMap.put("-enableFreeCam", m->m.enableFreecam=true);
 
         for(int i=0; i<args.length; i++) {
             Consumer<FinalSimulationProgram> func = argParserMap.get(args[i]);
@@ -106,7 +111,6 @@ public class FinalSimulationProgram implements Runnable{
 
         GL.createCapabilities();
 
-        //TODO TODO TODO check if okay to put everything inside the conditional
         if(enableCulling) {
             glEnable(GL_CULL_FACE);
             glCullFace(GL_BACK);
@@ -148,14 +152,20 @@ public class FinalSimulationProgram implements Runnable{
         //CAMERA
         Camera camera = new Camera();
         camera.setNstaySame(0.01f);
-//        camera.setPosition(5.0f, 7f, 7.0f)
-//                .rotate(new Vector3f(-1, 0, 0), 0.4f);
+        camera.setPosition(5.0f, 7f, 7.0f)
+                .rotate(new Vector3f(-1, 0, 0), 0.4f);
 
 
         //LIGHT
         Light light = new Light();
         light.setPosition(new Vector3f(300, 50f, -1.5f));
         light.setLookDirection(new Vector3f(0, 2, -1), new Vector3f(0, 1, 0));
+
+
+        Drawable cubeModel = DrawableFactory.makeSimpleTriangleMesh(developerMode ?
+                "src\\main\\resources\\models\\kocka.obj"
+                : ""
+        );
 
 
         //PLANE
@@ -167,46 +177,38 @@ public class FinalSimulationProgram implements Runnable{
                 mainShader,
                 uniformManager
         );
-        renderables.add(planeInstance);
         cleanables.add(planeInstance);
 
         planeInstance.setPosition(5, 5, 5);
-        Plane plane = new Plane(
-                new PhysicalObject(
-                    2000,
-                    planeInstance
-                ),
-                developerMode ? "src/main/resources/models/kocka.obj" :
-                        ""
-        );
-        PlaneHitbox planeHitbox = new PlaneHitbox(
-                DrawableFactory.makeSimpleTriangleMesh(
-                        developerMode ? "src/main/resources/models/kocka.obj" :
-                                ""
-                ),
-                mainShader,
-                uniformManager,
-                plane,
-                new SimulationEndListener() {
-                    @Override
-                    public void endSimulation() {
-                        glfwWindowShouldClose(window);
-                    }
-                }
-        );
-        planeHitbox.setShouldRender(false);
-        renderables.add(planeHitbox);
-
-        plane.setPlaneFollower(
-                new PlaneFollower(
-                        camera
-                )
-                        .setOffset(new Vector3f(0,0.5f, -2f))
-        );
-
-        plane.addHitboxVisitor(planeHitbox);
-
+        Plane plane = new Plane(planeInstance, 2000);
+        plane.generateAllHitboxes(cubeModel, mainShader, uniformManager, new SimulationEndListener() {
+            @Override
+            public void endSimulation() {
+                isTimeToEnd = true;
+            }
+        });
+        renderables.add(plane);
         updateables.add(plane);
+//        PlaneHitbox planeHitbox = new PlaneHitbox(
+//                DrawableFactory.makeSimpleTriangleMesh(
+//                        developerMode ? "src/main/resources/models/kocka.obj" :
+//                                ""
+//                ),
+//                mainShader,
+//                uniformManager,
+//                plane,
+//                new SimulationEndListener() {
+//                    @Override
+//                    public void endSimulation() {
+//                        glfwWindowShouldClose(window);
+//                    }
+//                }
+//        );
+//        planeHitbox.setOffset(0.f, -0.1f, -0.132f);
+//        planeHitbox.setScale(0.087f,0.072f,0.468f);
+//        planeHitbox.setShouldRender(true);
+//        renderables.add(planeHitbox);
+//        plane.addHitboxVisitor(planeHitbox);
 
 
         //SEA
@@ -242,11 +244,20 @@ public class FinalSimulationProgram implements Runnable{
 
 //        PhysicalObject physicalCamera = new PhysicalObject(1, camera);
 
-//        inputManagers.add(new TestCameraInputManager(
-//                window, width, height, camera, true
-//        ));
-
-        inputManagers.add(new PlaneKeyboardInputManager(plane));
+//        enableFreecam = true;
+        if(enableFreecam) {
+            inputManagers.add(new TestCameraInputManager(
+                    window, width, height, camera, true
+            ));
+        } else {
+            plane.setPlaneFollower(
+                    new PlaneFollower(
+                            camera
+                    )
+                            .setOffset(new Vector3f(0,0.5f, -2f))
+            );
+            inputManagers.add(new PlaneKeyboardInputManager(plane));
+        }
 
 //        inputManagers.add(new HitboxManipulatorManager(planeHitbox));
 
@@ -254,6 +265,12 @@ public class FinalSimulationProgram implements Runnable{
 //        inputManagers.add(new TestPhysicalCamera(
 //                window, width, height, physicalCamera, true
 //        ));
+
+        //put plane above ground on the edge of the island
+        Vector3f planePos = new Vector3f(80, 0, 0);
+        planeInstance.setPosition(planePos.x, mainIslandTerrain.getHeightAt(planePos)+2, 0);
+        camera.setPosition(plane.getTransform().getPosition());
+        plane.setShouldRender(true);
 
 
         while(!glfwWindowShouldClose(window)) {
@@ -266,19 +283,76 @@ public class FinalSimulationProgram implements Runnable{
             lastTime = Instant.now();
 
             glfwPollEvents();
-            for(InputManager inputManager : inputManagers) {
+
+            for (InputManager inputManager : inputManagers) {
                 inputManager.procesInputDeltaT(window, deltaT);
             }
 
+
+            int threadCount = updateables.size();
+            CountDownLatch latch = new CountDownLatch(threadCount);
             for(Updateable updateable : updateables) {
-                updateable.update(deltaT);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try{
+                            updateable.update(deltaT);
+                        } finally {
+                            latch.countDown();
+                        }
+                    }
+                }).start();
+            }
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
 
             for(Renderable renderable : renderables) {
                 renderable.render(camera, light);
             }
 
+            threadCount = terrainObjects.size()+1;
+            CountDownLatch latch2 = new CountDownLatch(threadCount);
+            for(TerrainObject terrainObject : terrainObjects) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try{
+                            plane.visitTerrain(terrainObject);
+                        } finally {
+                            latch.countDown();
+                        }
+                    }
+                }).start();
+            }
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try{
+                        plane.visitSea(seaObject);
+                    } finally {
+                        latch.countDown();
+                    }
+                }
+            }).start();
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+
             glfwSwapBuffers(window);
+
+            if(isTimeToEnd) {
+                try {
+                    glfwSetWindowShouldClose(window, true);
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
         }
     }
 

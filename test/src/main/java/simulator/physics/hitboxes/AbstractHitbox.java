@@ -10,6 +10,7 @@ import simulator.transforms.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 public abstract class AbstractHitbox extends ObjectInstance implements HitboxVisitor {
     Plane owner;
@@ -41,7 +42,7 @@ public abstract class AbstractHitbox extends ObjectInstance implements HitboxVis
 
     public AbstractHitbox setOffset(Vector3f offset) {
         this.offset = offset;
-        setPosition(offset.add(this.owner.getTransform().getPosition()));
+        setPosition(new Vector3f(offset).add(this.owner.getTransform().getPosition()));
         return this;
     }
 
@@ -151,7 +152,13 @@ public abstract class AbstractHitbox extends ObjectInstance implements HitboxVis
     @Override
     public void update(float deltaT) {
         this.pointsAreUpToDate = false;
-        setPosition(new Vector3f(this.offset).add(owner.getTransform().getPosition()));
+        Vector3f newPos = new Vector3f(owner.getTransform().getPosition());
+        newPos.add(new Vector3f(owner.getTransform().getFront()).mul(-offset.z))
+                        .add(new Vector3f(owner.getTransform().getRight()).mul(offset.x))
+                                .add(new Vector3f(owner.getTransform().getUp()).mul(offset.y));
+
+
+        setPosition(newPos);
         setLookDirection(owner.getTransform().getFront(), owner.getTransform().getUp());
 
         updateBoundingPoints();

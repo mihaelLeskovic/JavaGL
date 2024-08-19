@@ -42,9 +42,9 @@ public class Transform {
         normalizeVectors();
 
         Matrix4f rotationMatrix = new Matrix4f(
-                right.x, up.x, front.x, 0,
-                right.y, up.y, front.y, 0,
-                right.z, up.z, front.z, 0,
+                right.x, right.y, right.z, 0,
+                up.x, up.y, up.z, 0,
+                front.x, front.y, front.z, 0,
                 0, 0, 0, 1
         );
 

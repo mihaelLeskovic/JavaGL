@@ -8,6 +8,9 @@ import static org.lwjgl.glfw.GLFW.*;
 public class PlaneKeyboardInputManager implements InputManager {
     private Plane plane;
     boolean shouldToggleThrottle = false;
+    float pitchSensitivity = 0.5f;
+    float yawSensitivity = 0.5f;
+    float rollSensitivity = 0.5f;
 
     public PlaneKeyboardInputManager(Plane plane) {
         this.plane = plane;
@@ -27,16 +30,16 @@ public class PlaneKeyboardInputManager implements InputManager {
             if(glfwGetKey(window, np0+val) == GLFW_PRESS) plane.setThrottleLevel(val / 9.f);
         }
 
-        if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) plane.setPitch(-1);
-        else if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) plane.setPitch(1);
+        if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) plane.setPitch(-1 * pitchSensitivity);
+        else if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) plane.setPitch(1 * pitchSensitivity);
         else plane.setPitch(0);
 
-        if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) plane.setRoll(-1);
-        else if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) plane.setRoll(1);
+        if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) plane.setRoll(1 * rollSensitivity);
+        else if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) plane.setRoll(-1 * rollSensitivity);
         else plane.setRoll(0);
 
-        if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) plane.setYaw(1);
-        else if(glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) plane.setYaw(-1);
+        if(glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) plane.setYaw(1 * yawSensitivity);
+        else if(glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) plane.setYaw(-1 * yawSensitivity);
         else plane.setYaw(0);
     }
 }
