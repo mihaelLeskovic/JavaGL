@@ -136,9 +136,5 @@ public class PhysicalObject implements Forceable, Updateable, CollisionEventList
     @Override
     public void notifyCollision() {
         velocity.y = velocity.y > 0 ? velocity.y : -velocity.y*0.5f;
-//        transform.setLookDirection(
-//                velocity.length() > 0.1 ? new Vector3f(velocity).normalize() : transform.getFront(),
-//                transform.getUp()
-//        );
     }
 }

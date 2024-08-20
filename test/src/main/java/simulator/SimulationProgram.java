@@ -190,26 +190,6 @@ public class SimulationProgram implements Runnable{
         });
         renderables.add(plane);
         updateables.add(plane);
-//        PlaneHitbox planeHitbox = new PlaneHitbox(
-//                DrawableFactory.makeSimpleTriangleMesh(
-//                        developerMode ? "src/main/resources/models/kocka.obj" :
-//                                ""
-//                ),
-//                mainShader,
-//                uniformManager,
-//                plane,
-//                new SimulationEndListener() {
-//                    @Override
-//                    public void endSimulation() {
-//                        glfwWindowShouldClose(window);
-//                    }
-//                }
-//        );
-//        planeHitbox.setOffset(0.f, -0.1f, -0.132f);
-//        planeHitbox.setScale(0.087f,0.072f,0.468f);
-//        planeHitbox.setShouldRender(true);
-//        renderables.add(planeHitbox);
-//        plane.addHitboxVisitor(planeHitbox);
 
 
         //SEA
