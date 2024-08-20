@@ -1,9 +1,11 @@
-package simulator.drawables;
+package simulator.transforms;
 
+import simulator.drawables.TerrainMesh;
 import simulator.shaders.UniformManager;
 import simulator.shaders.Shader;
 import org.joml.Vector3f;
 import org.lwjgl.system.MemoryUtil;
+import simulator.transforms.TerrainObject;
 
 import java.nio.FloatBuffer;
 import java.util.Random;
@@ -109,11 +111,7 @@ public abstract class RenderableFactory {
         terrainObject.maxHeight = maxGeneratedHeight;
 
         TerrainMesh terrainMesh = new TerrainMesh();
-        terrainMesh.VAOs = new int[n];
-        terrainMesh.VBOs = new int[n*2];
-
-        glGenVertexArrays(terrainMesh.VAOs);
-        glGenBuffers(terrainMesh.VBOs);
+        terrainMesh.initializeBuffers(n);
 
         for(int i = 0; i < n; i++) {
             FloatBuffer vertices = MemoryUtil.memAllocFloat((n + 1) * 6);
@@ -145,13 +143,13 @@ public abstract class RenderableFactory {
             vertices.flip();
             normalsBuffer.flip();
 
-            glBindVertexArray(terrainMesh.VAOs[i]);
+            glBindVertexArray(terrainMesh.getVAO(i));
 
-            glBindBuffer(GL_ARRAY_BUFFER, terrainMesh.VBOs[i]);
+            glBindBuffer(GL_ARRAY_BUFFER, terrainMesh.getVBO(i));
             glBufferData(GL_ARRAY_BUFFER, vertices, GL_STATIC_DRAW);
             glVertexAttribPointer(0, 3, GL_FLOAT, false, 3*Float.BYTES, 0);
 
-            glBindBuffer(GL_ARRAY_BUFFER, terrainMesh.VBOs[i+n]);
+            glBindBuffer(GL_ARRAY_BUFFER, terrainMesh.getVBO(i+n));
             glBufferData(GL_ARRAY_BUFFER, normalsBuffer, GL_STATIC_DRAW);
             glVertexAttribPointer(1, 3, GL_FLOAT, false, 3*Float.BYTES, 0);
 

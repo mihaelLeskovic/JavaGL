@@ -1,6 +1,5 @@
 package javagl.architecture.transforms;
 
-import org.joml.FrustumIntersection;
 import org.joml.Matrix4f;
 
 public class Camera extends Transform {

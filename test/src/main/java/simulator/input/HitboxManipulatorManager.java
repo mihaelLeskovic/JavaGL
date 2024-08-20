@@ -3,6 +3,7 @@ package simulator.input;
 import org.joml.Vector3f;
 import simulator.physics.hitboxes.AbstractHitbox;
 
+
 import static org.lwjgl.glfw.GLFW.*;
 
 public class HitboxManipulatorManager implements InputManager{

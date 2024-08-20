@@ -1,7 +1,6 @@
 package javagl.architecture.renderables;
 
 import org.joml.Vector3f;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.assimp.AIMesh;
 import org.lwjgl.assimp.AIScene;
 import org.lwjgl.system.MemoryStack;

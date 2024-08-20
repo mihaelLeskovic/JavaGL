@@ -3,6 +3,7 @@ package simulator.drawables;
 import simulator.utility.Cleanable;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL15.glGenBuffers;
 import static org.lwjgl.opengl.GL15C.glDeleteBuffers;
 import static org.lwjgl.opengl.GL30C.glBindVertexArray;
 

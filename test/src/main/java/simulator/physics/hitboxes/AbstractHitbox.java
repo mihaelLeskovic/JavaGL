@@ -2,7 +2,7 @@ package simulator.physics.hitboxes;
 
 import org.joml.Vector3f;
 import simulator.drawables.Drawable;
-import simulator.drawables.TerrainObject;
+import simulator.transforms.TerrainObject;
 import simulator.physics.Plane;
 import simulator.shaders.Shader;
 import simulator.shaders.UniformManager;
@@ -10,7 +10,6 @@ import simulator.transforms.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 public abstract class AbstractHitbox extends ObjectInstance implements HitboxVisitor {
     Plane owner;
@@ -96,9 +95,39 @@ public abstract class AbstractHitbox extends ObjectInstance implements HitboxVis
     }
 
     @Override
-    public void visitTerrain(TerrainObject terrainObject) {
-        update(0);
+    public void visitRunway(Runway runway) {
+        float maxDiff = Float.MIN_VALUE;
+        boolean hasCollided = false;
+        boolean groundedInThisRun = false;
 
+        float heightOfRunway = runway.getHeight();
+
+        for (Vector3f boundingPoint : boundingPoints) {
+            if(!runway.pointIsCloseEnough(boundingPoint)) continue;
+
+            if(heightOfRunway > boundingPoint.y - groundedTolerance) {
+                groundedInThisRun = true;
+                isGrounded = true;
+            }
+
+            if (heightOfRunway > boundingPoint.y) {
+                hasCollided = true;
+                float diff = heightOfRunway - boundingPoint.y;
+                maxDiff = Math.max(diff, maxDiff);
+            }
+        }
+
+        if(!groundedInThisRun) isGrounded = false;
+
+        if(!hasCollided) return;
+        onCollisionTerrain(new Vector3f(0, maxDiff, 0));
+
+        notifyCollisionListeners();
+//        updateBoundingPoints();
+    }
+
+    @Override
+    public void visitTerrain(TerrainObject terrainObject) {
         float maxDiff = Float.MIN_VALUE;
         boolean hasCollided = false;
         boolean groundedInThisRun = false;
@@ -125,12 +154,11 @@ public abstract class AbstractHitbox extends ObjectInstance implements HitboxVis
         if(!hasCollided) return;
         onCollisionTerrain(new Vector3f(0, maxDiff, 0));
         notifyCollisionListeners();
+//        updateBoundingPoints();
     }
 
     @Override
     public void visitSea(SeaObject seaObject) {
-        update(0);
-
         float heightAtPoint = seaObject.getHeight()/2;
 
         float maxDiff = Float.MIN_VALUE;
@@ -147,6 +175,7 @@ public abstract class AbstractHitbox extends ObjectInstance implements HitboxVis
         if(!hasCollided) return;
         onCollisionTerrain(new Vector3f(0, maxDiff, 0));
         notifyCollisionListeners();
+//        updateBoundingPoints();
     }
 
     @Override
@@ -154,8 +183,8 @@ public abstract class AbstractHitbox extends ObjectInstance implements HitboxVis
         this.pointsAreUpToDate = false;
         Vector3f newPos = new Vector3f(owner.getTransform().getPosition());
         newPos.add(new Vector3f(owner.getTransform().getFront()).mul(-offset.z))
-                        .add(new Vector3f(owner.getTransform().getRight()).mul(offset.x))
-                                .add(new Vector3f(owner.getTransform().getUp()).mul(offset.y));
+                .add(new Vector3f(owner.getTransform().getRight()).mul(offset.x))
+                .add(new Vector3f(owner.getTransform().getUp()).mul(offset.y));
 
 
         setPosition(newPos);

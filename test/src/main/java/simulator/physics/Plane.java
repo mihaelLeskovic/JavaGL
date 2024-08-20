@@ -2,7 +2,7 @@ package simulator.physics;
 
 import org.joml.Vector3f;
 import simulator.drawables.Drawable;
-import simulator.drawables.TerrainObject;
+import simulator.transforms.TerrainObject;
 import simulator.physics.hitboxes.HitboxVisitor;
 import simulator.physics.hitboxes.PlaneHitbox;
 import simulator.physics.hitboxes.VisitableHitbox;
@@ -49,9 +49,8 @@ public class Plane implements Updateable, CollisionEventListener, Renderable {
 
     public void applyAllForces() {
         if(shouldApplyThrottle) applyThrottle();
-//        if(!isGrounded)
-            applyRollAndPitch();
-        applyYaw();
+        if(planePhysicalObject.velocity.length()>4f) applyRollAndPitch();
+        if(planePhysicalObject.velocity.length()>1f) applyYaw();
         applyLift();
         applyGravity();
 //        applyDrag();
@@ -220,6 +219,12 @@ public class Plane implements Updateable, CollisionEventListener, Renderable {
         return this;
     }
 
+    public void visitRunway(Runway runway) {
+        for(HitboxVisitor hitboxVisitor : hitboxVisitorList) {
+            hitboxVisitor.visitRunway(runway);
+        }
+    }
+
     public void visitSea(SeaObject seaObject) {
         for(HitboxVisitor hitboxVisitor : hitboxVisitorList) {
             hitboxVisitor.visitSea(seaObject);
@@ -236,7 +241,7 @@ public class Plane implements Updateable, CollisionEventListener, Renderable {
     public void notifyCollision() {
         planePhysicalObject.notifyCollision();
         isGrounded = true;
-        updateHitboxes();
+//        updateHitboxes();
     }
 
     @Override

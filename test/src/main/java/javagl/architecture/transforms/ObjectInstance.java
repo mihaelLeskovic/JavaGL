@@ -3,8 +3,6 @@ package javagl.architecture.transforms;
 import javagl.architecture.UniformManager;
 import javagl.architecture.renderables.Renderable;
 import org.joml.Matrix4f;
-import org.joml.Vector3f;
-import org.joml.Vector4f;
 
 import java.util.ArrayList;
 import java.util.List;

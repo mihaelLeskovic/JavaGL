@@ -32,7 +32,7 @@ public class Main implements WindowSwitchListener, AppCloseListener {
 
                 if(shouldClose) break;
 
-                simulationProgram = new FinalSimulationProgram(args, this);
+                simulationProgram = new SimulationProgram(args, this);
                 simulationProgram.run();
                 shouldOpenSim = false;
             }

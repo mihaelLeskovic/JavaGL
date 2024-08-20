@@ -1,6 +1,5 @@
 package javagl.architecture.transforms;
 
-import javagl.architecture.transforms.Transform;
 import org.joml.Vector3f;
 
 public class Light extends Transform {

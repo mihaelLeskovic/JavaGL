@@ -1,5 +1,6 @@
-package simulator.drawables;
+package simulator.transforms;
 
+import simulator.drawables.TerrainMesh;
 import simulator.utility.Cleanable;
 import simulator.physics.hitboxes.HitboxVisitor;
 import simulator.physics.hitboxes.VisitableHitbox;

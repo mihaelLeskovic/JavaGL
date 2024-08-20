@@ -1,11 +1,7 @@
 package simulator.input;
 
-import simulator.drawables.TerrainObject;
 import simulator.physics.PhysicalObject;
-import simulator.transforms.ObjectInstance;
 import org.joml.Vector3f;
-
-import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
 

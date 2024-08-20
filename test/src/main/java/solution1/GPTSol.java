@@ -1,4 +1,4 @@
-package gpt.solution1;
+package solution1;
 
 import org.lwjgl.*;
 import org.lwjgl.glfw.*;

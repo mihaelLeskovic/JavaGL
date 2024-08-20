@@ -1,6 +1,6 @@
 package simulator.input;
 
-import simulator.drawables.TerrainObject;
+import simulator.transforms.TerrainObject;
 import simulator.transforms.Camera;
 import simulator.transforms.ObjectInstance;
 import simulator.transforms.Transform;
