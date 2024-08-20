@@ -117,11 +117,6 @@
                                     <mainClass>simulator.Main</mainClass>
                                 </transformer>
                             </transformers>
-                            <artifactSet>
-                                <excludes>
-<!--                                    <exclude>testing.pak1</exclude>-->
-                                </excludes>
-                            </artifactSet>
                         </configuration>
                     </execution>
                 </executions>
