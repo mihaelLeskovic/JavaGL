@@ -5,12 +5,13 @@ import simulator.transforms.Camera;
 import simulator.transforms.ObjectInstance;
 import simulator.transforms.Transform;
 import org.joml.Vector3f;
+import simulator.utility.WindowResizeListener;
 
 import java.util.List;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-public class TestCameraInputManager implements InputManager{
+public class TestCameraInputManager implements InputManager, WindowResizeListener {
     private double xSens, ySens;
     private float moveSpeed;
     private Transform movable;
@@ -177,5 +178,11 @@ public class TestCameraInputManager implements InputManager{
 
         lastX = xpos;
         lastY = ypos;
+    }
+
+    @Override
+    public void resizeWindow(long window, int width, int height) {
+        this.width = width;
+        this.height = height;
     }
 }

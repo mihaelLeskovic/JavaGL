@@ -1,9 +1,11 @@
 package simulator;
 
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.glfw.GLFWWindowSizeCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
 import simulator.drawables.Drawable;
@@ -18,6 +20,7 @@ import simulator.shaders.UniformManager;
 import simulator.swing.WindowSwitchListener;
 import simulator.transforms.*;
 import simulator.utility.Cleanable;
+import simulator.utility.WindowResizeListener;
 
 import java.nio.IntBuffer;
 import java.time.Duration;
@@ -37,13 +40,14 @@ import static org.lwjgl.opengl.GL32.GL_GEOMETRY_SHADER;
 import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class SimulationProgram implements Runnable{
+public class SimulationProgram implements Runnable {
     int width = 800;
     int height = 600;
     String[] args;
     WindowSwitchListener main;
     long window;
-    List<Cleanable> cleanables = new ArrayList<>();;
+    List<Cleanable> cleanables = new ArrayList<>();
+    List<WindowResizeListener> windowResizeListeners = new ArrayList<>();
     HashMap<String, Consumer<SimulationProgram>> argParserMap;
     boolean developerMode = false;
     boolean enableCulling = true;
@@ -70,7 +74,7 @@ public class SimulationProgram implements Runnable{
         argParserMap = new HashMap<>();
         argParserMap.put("-developerMode", m -> m.developerMode = true);
         argParserMap.put("-disableCulling", m -> m.enableCulling=false);
-        argParserMap.put("-enableFreeCam", m->m.enableFreecam=true);
+        argParserMap.put("-enableFreecam", m->m.enableFreecam=true);
         argParserMap.put("-enableHitboxes", m->m.enableHitboxRendering=true);
 
         for(int i=0; i<args.length; i++) {
@@ -90,7 +94,7 @@ public class SimulationProgram implements Runnable{
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-        window = glfwCreateWindow(width, height, "My main", NULL, NULL);
+        window = glfwCreateWindow(width, height, "Simulation", NULL, NULL);
         if (window == NULL)
             throw new RuntimeException("Failed to create the GLFW window");
 
@@ -109,6 +113,17 @@ public class SimulationProgram implements Runnable{
         glfwMakeContextCurrent(window);
         glfwSwapInterval(1);
         glfwShowWindow(window);
+
+        glfwSetWindowSizeCallback(window, new GLFWWindowSizeCallback() {
+            @Override
+            public void invoke(long window, int width, int height) {
+                glViewport(0, 0, width, height);
+
+                for(WindowResizeListener windowResizeListener : windowResizeListeners) {
+                    windowResizeListener.resizeWindow(window, width, height);
+                }
+            }
+        });
 
         GL.createCapabilities();
 
@@ -178,6 +193,7 @@ public class SimulationProgram implements Runnable{
                 mainShader,
                 uniformManager
         );
+        planeInstance.setColor(0.95f, 0.95f, 0.95f);
         cleanables.add(planeInstance);
 
         planeInstance.setPosition(5, 5, 5);
@@ -229,9 +245,11 @@ public class SimulationProgram implements Runnable{
 //        enableFreecam = true;
 //        enableHitboxRendering = true;
         if(enableFreecam) {
-            inputManagers.add(new TestCameraInputManager(
+            TestCameraInputManager testCameraInputManager = new TestCameraInputManager(
                     window, width, height, camera, true
-            ));
+            );
+            inputManagers.add(testCameraInputManager);
+            windowResizeListeners.add(testCameraInputManager);
         } else {
             plane.setPlaneFollower(
                     new PlaneFollower(
@@ -245,9 +263,11 @@ public class SimulationProgram implements Runnable{
 //        inputManagers.add(new HitboxManipulatorManager(planeHitbox));
 
 //        updateables.add(physicalCamera);
-//        inputManagers.add(new TestPhysicalCamera(
+//        TestPhysicalCamera testPhysicalCamera = new TestPhysicalCamera(
 //                window, width, height, physicalCamera, true
-//        ));
+//        );
+//        inputManagers.add(testPhysicalCamera);
+//        windowResizeListeners.add(testPhysicalCamera);
 
         //put plane above ground on the edge of the island
         Vector3f planePos = new Vector3f(80, 0, 0);
@@ -261,22 +281,30 @@ public class SimulationProgram implements Runnable{
         runway.setUpFor(planeInstance, 3.8f, 50, 3);
         renderables.add(runway);
 
+        float deltaTsum = 0;
+        int frameCount = 0;
 
         while(!glfwWindowShouldClose(window)) {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            // unnecessary?
             glUseProgram(mainShader.getShader());
 
             float deltaT = Duration.between(lastTime, Instant.now()).toMillis() * 0.001f;
             lastTime = Instant.now();
+
+            deltaTsum += deltaT;
+            frameCount++;
+            if(deltaTsum > 1) {
+                glfwSetWindowTitle(window, String.format("Simulation - %.2f FPS", frameCount/deltaTsum));
+                deltaTsum = 0;
+                frameCount = 0;
+            }
 
             glfwPollEvents();
 
             for (InputManager inputManager : inputManagers) {
                 inputManager.procesInputDeltaT(window, deltaT);
             }
-
 
             int threadCount = updateables.size();
             CountDownLatch latch = new CountDownLatch(threadCount);

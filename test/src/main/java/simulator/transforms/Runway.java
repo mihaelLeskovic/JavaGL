@@ -1,7 +1,6 @@
 package simulator.transforms;
 
 import org.joml.Vector3f;
-import simulator.Main;
 import simulator.drawables.Drawable;
 import simulator.physics.hitboxes.HitboxVisitor;
 import simulator.physics.hitboxes.VisitableHitbox;

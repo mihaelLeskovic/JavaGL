@@ -2,10 +2,11 @@ package simulator.input;
 
 import simulator.physics.PhysicalObject;
 import org.joml.Vector3f;
+import simulator.utility.WindowResizeListener;
 
 import static org.lwjgl.glfw.GLFW.*;
 
-public class TestPhysicalCamera implements InputManager{
+public class TestPhysicalCamera implements InputManager, WindowResizeListener {
     private double xSens, ySens;
     private float moveSpeed;
     private PhysicalObject physicalObject;
@@ -141,5 +142,11 @@ public class TestPhysicalCamera implements InputManager{
 
         lastX = xpos;
         lastY = ypos;
+    }
+
+    @Override
+    public void resizeWindow(long window, int width, int height) {
+        this.width = width;
+        this.height = height;
     }
 }
