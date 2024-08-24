@@ -49,7 +49,8 @@ public abstract class AbstractHitbox extends ObjectInstance implements HitboxVis
         super(drawable, shader, uniformManager);
         this.owner = owner;
         this.offset = new Vector3f(0);
-        setPosition(owner.getTransform().getPosition());
+        if(owner!=null) setPosition(owner.getTransform().getPosition());
+        else setPosition(0,0,0);
     }
 
     @Override

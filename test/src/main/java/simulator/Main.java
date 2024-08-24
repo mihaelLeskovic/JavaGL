@@ -25,16 +25,15 @@ public class Main implements WindowSwitchListener, AppCloseListener {
         swingApp.run();
 
         synchronized (this) {
-            while(true) {
-                if(!shouldOpenSim) {
+            while(!shouldClose) {
+                while(!shouldOpenSim) {
                     wait();
+                    if(shouldClose) return;
                 }
 
-                if(shouldClose) break;
-
+                shouldOpenSim = false;
                 simulationProgram = new SimulationProgram(args, this);
                 simulationProgram.run();
-                shouldOpenSim = false;
             }
         }
     }

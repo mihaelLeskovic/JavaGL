@@ -10,6 +10,7 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
 import simulator.drawables.Drawable;
 import simulator.drawables.DrawableFactory;
+import simulator.physics.hitboxes.PlaneHitbox;
 import simulator.transforms.RenderableFactory;
 import simulator.transforms.TerrainObject;
 import simulator.input.*;
@@ -260,6 +261,9 @@ public class SimulationProgram implements Runnable {
             inputManagers.add(new PlaneKeyboardInputManager(plane));
         }
 
+//        PlaneHitbox planeHitbox = new PlaneHitbox(cubeModel, mainShader, uniformManager, plane, null);
+//        planeHitbox.setShouldRender(enableHitboxRendering);
+//        renderables.add(planeHitbox);
 //        inputManagers.add(new HitboxManipulatorManager(planeHitbox));
 
 //        updateables.add(physicalCamera);

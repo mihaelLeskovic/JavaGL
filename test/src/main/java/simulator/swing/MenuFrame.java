@@ -21,10 +21,10 @@ public class MenuFrame extends JFrame {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BorderLayout());
 
-        ImageIcon logoIcon = new ImageIcon("path/to/your/logo.png");
-        JLabel logoLabel = new JLabel(logoIcon);
-        logoLabel.setHorizontalAlignment(JLabel.CENTER);
-        mainPanel.add(logoLabel, BorderLayout.NORTH);
+//        ImageIcon logoIcon = new ImageIcon("path/logo.png");
+//        JLabel logoLabel = new JLabel(logoIcon);
+//        logoLabel.setHorizontalAlignment(JLabel.CENTER);
+//        mainPanel.add(logoLabel, BorderLayout.NORTH);
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
