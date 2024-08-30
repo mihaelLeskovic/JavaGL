@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>javagl</groupId>
-    <artifactId>test</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>plane_simulator</artifactId>
+    <version>1.0</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -16,7 +16,7 @@
 
 <!--    java opengl-->
 
-	<joml.version>1.10.5</joml.version>
+	    <joml.version>1.10.5</joml.version>
         <lwjgl.version>3.3.3</lwjgl.version>
     </properties>
     
