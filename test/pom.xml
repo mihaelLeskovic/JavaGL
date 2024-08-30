@@ -16,6 +16,7 @@
 
 <!--    java opengl-->
 
+	<joml.version>1.10.5</joml.version>
         <lwjgl.version>3.3.3</lwjgl.version>
     </properties>
     
@@ -72,7 +73,6 @@
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl</artifactId>
-            <classifier>${lwjgl.natives}</classifier>
         </dependency>
         <dependency>
             <groupId>org.lwjgl</groupId>
@@ -93,6 +93,11 @@
         <dependency>
             <groupId>org.lwjgl</groupId>
             <artifactId>lwjgl-stb</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.lwjgl</groupId>
+            <artifactId>lwjgl</artifactId>
+            <classifier>${lwjgl.natives}</classifier>
         </dependency>
         <dependency>
             <groupId>org.lwjgl</groupId>
@@ -122,7 +127,7 @@
         <dependency>
             <groupId>org.joml</groupId>
             <artifactId>joml</artifactId>
-            <version>1.10.5</version>
+            <version>${joml.version}</version>
         </dependency>
 
 
