@@ -48,17 +48,12 @@ public class Transform {
                 0, 0, 0, 1
         );
 
-        //TODO mozda treba samo biti viewMatrix.inverse()
-
         modelMatrix.identity()
                 .translate(position)
                 .mul(rotationMatrix)
                 .scale(scale);
 
         Vector3f target = position.add(front, new Vector3f());
-
-        //TODO mozda treba ovo pomnoziti scaleMatrix * viewMatrix;
-//        Matrix4f scaleMatrix = new Matrix4f().identity().scale(scale).invert();
 
         viewMatrix.identity()
                 .lookAt(position, target, up)

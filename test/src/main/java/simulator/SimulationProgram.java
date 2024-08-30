@@ -180,16 +180,16 @@ public class SimulationProgram implements Runnable {
 
 
         Drawable cubeModel = DrawableFactory.makeSimpleTriangleMesh(developerMode ?
-                "src\\main\\resources\\models\\kocka.obj"
-                : "resources\\models\\kocka.obj"
+                "src/main/resources/models/kocka.obj"
+                : "resources/models/kocka.obj"
         );
 
 
         //PLANE
         ObjectInstance planeInstance = new ObjectInstance(
                 DrawableFactory.makeSimpleTriangleMesh(developerMode ?
-                        "src\\main\\resources\\models\\jet.obj"
-                        : "resources\\models\\jet.obj"
+                        "src/main/resources/models/jet.obj"
+                        : "resources/models/jet.obj"
                 ),
                 mainShader,
                 uniformManager
