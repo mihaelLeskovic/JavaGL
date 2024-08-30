@@ -73,7 +73,7 @@ public class ShaderFactory {
     public static Shader constructShader(String pathToDir, String fileName, Integer... types) {
         StringBuilder pathBuilder = new StringBuilder(pathToDir);
 
-        if(!pathToDir.endsWith("\\") && !pathToDir.endsWith("/")) pathBuilder.append("\\");
+        if(!pathToDir.endsWith("/") && !pathToDir.endsWith("/")) pathBuilder.append("/");
 
         pathBuilder.append(fileName).append(".");
 
