@@ -25,11 +25,11 @@ public class Plane implements Updateable, CollisionEventListener, Renderable {
     float throttlePower = 100000f;
     boolean shouldApplyThrottle = false;
     float pitch = 0f;
-    float pitchSensitivity = 0.01f;
+    float pitchSensitivity = 12f;
     float yaw = 0f;
-    float yawSensitivity = 0.01f;
+    float yawSensitivity = 12f;
     float roll = 0f;
-    float rollSensitivity = 0.01f;
+    float rollSensitivity = 12f;
     float liftCoefficient = 5f;
     boolean isGrounded = true;
     boolean shouldApplyGravity = true;
@@ -47,10 +47,10 @@ public class Plane implements Updateable, CollisionEventListener, Renderable {
         planeFollower.setPlane(this);
     }
 
-    public void applyAllForces() {
+    public void applyAllForces(float deltaT) {
         if(shouldApplyThrottle) applyThrottle();
-        if(planePhysicalObject.velocity.length()>4f) applyRollAndPitch();
-        if(planePhysicalObject.velocity.length()>1f) applyYaw();
+        if(planePhysicalObject.velocity.length()>4f) applyRollAndPitch(deltaT);
+        if(planePhysicalObject.velocity.length()>1f) applyYaw(deltaT);
         applyLift();
         applyGravity();
 //        applyDrag();
@@ -73,13 +73,13 @@ public class Plane implements Updateable, CollisionEventListener, Renderable {
         planePhysicalObject.applyAcceleration(new Vector3f(0, -PhysicalObject.GRAVITY, 0));
     }
 
-    private void applyYaw() {
-        if(yaw!=0) planePhysicalObject.applyTorqueAroundLocalAxis(new Vector3f(0, 1, 0), yaw * yawSensitivity);
+    private void applyYaw(float deltaT) {
+        if(yaw!=0) planePhysicalObject.applyTorqueAroundLocalAxis(new Vector3f(0, 1, 0), yaw * yawSensitivity * deltaT);
     }
 
-    private void applyRollAndPitch() {
-        if(pitch!=0) planePhysicalObject.applyTorqueAroundLocalAxis(new Vector3f(1, 0, 0), pitch * pitchSensitivity);
-        if(roll!=0) planePhysicalObject.applyTorqueAroundLocalAxis(new Vector3f(0, 0, 1), -roll * rollSensitivity);
+    private void applyRollAndPitch(float deltaT) {
+        if(pitch!=0) planePhysicalObject.applyTorqueAroundLocalAxis(new Vector3f(1, 0, 0), pitch * pitchSensitivity * deltaT);
+        if(roll!=0) planePhysicalObject.applyTorqueAroundLocalAxis(new Vector3f(0, 0, 1), -roll * rollSensitivity * deltaT);
     }
 
     private void applyThrottle() {
@@ -198,7 +198,7 @@ public class Plane implements Updateable, CollisionEventListener, Renderable {
 
         updateHitboxes();
         if(planeFollower!=null) planeFollower.update(deltaT);
-        applyAllForces();
+        applyAllForces(deltaT);
     }
 
     public Plane addHitboxVisitor(HitboxVisitor hitboxVisitor) {
