@@ -17,5 +17,7 @@ CONTROLS:
 
 ADDITIONAL ARGUMENTS:
 - used in typical argument fashion: 'java -jar plane_simulator.jar [space-split arguments]'
+  
 '-enableHitboxes' - make hitboxes visible
+
 '-enableFreecam' - disable simulation mode and control the camera in a freecam mode; WSADQE for controls, C for culling, V to set the mouse free
