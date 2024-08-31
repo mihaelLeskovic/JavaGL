@@ -4,6 +4,9 @@
 - implemented in Java, using LWJGL; implements its own 3D graphics and physics engine
 - offers compatibility for Windows and Linux (tested) and potentially for macOS (untested, but compiled and packaged)
 
+NOTE:
+- must use jdk 17 or above, older versions are not tested and may break
+
 HOW TO USE:
 - download relevant plane_simulator_[OS].zip file
 - unpack it
