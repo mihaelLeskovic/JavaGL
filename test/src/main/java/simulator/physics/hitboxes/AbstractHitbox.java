@@ -124,7 +124,6 @@ public abstract class AbstractHitbox extends ObjectInstance implements HitboxVis
         onCollisionTerrain(new Vector3f(0, maxDiff, 0));
 
         notifyCollisionListeners();
-//        updateBoundingPoints();
     }
 
     @Override

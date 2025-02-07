@@ -3,7 +3,7 @@ package simulator.physics.hitboxes;
 import org.joml.Vector3f;
 import simulator.drawables.Drawable;
 import simulator.physics.Plane;
-import simulator.physics.SimulationEndListener;
+import simulator.utility.SimulationEndListener;
 import simulator.shaders.Shader;
 import simulator.shaders.UniformManager;
 

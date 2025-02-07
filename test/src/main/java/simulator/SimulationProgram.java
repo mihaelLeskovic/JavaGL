@@ -1,6 +1,5 @@
 package simulator;
 
-import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -10,7 +9,6 @@ import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
 import simulator.drawables.Drawable;
 import simulator.drawables.DrawableFactory;
-import simulator.physics.hitboxes.PlaneHitbox;
 import simulator.transforms.RenderableFactory;
 import simulator.transforms.TerrainObject;
 import simulator.input.*;
@@ -21,6 +19,7 @@ import simulator.shaders.UniformManager;
 import simulator.swing.WindowSwitchListener;
 import simulator.transforms.*;
 import simulator.utility.Cleanable;
+import simulator.utility.SimulationEndListener;
 import simulator.utility.WindowResizeListener;
 
 import java.nio.IntBuffer;
